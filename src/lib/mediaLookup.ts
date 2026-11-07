@@ -25,9 +25,15 @@ export async function searchMedia(query: string, type?: MediaType): Promise<Medi
   const params = new URLSearchParams({ q: query.trim() });
   if (type) params.set('type', type);
   const response = await fetch(`/api/imdb/search?${params.toString()}`);
-  if (!response.ok) return [];
-  const payload = (await response.json()) as { results?: MediaCandidate[] };
-  return Array.isArray(payload.results) ? payload.results : [];
+  const payload = (await response.json().catch(() => null)) as
+    | { ok?: boolean; results?: MediaCandidate[]; error?: string }
+    | null;
+
+  if (!response.ok || payload?.ok === false) {
+    throw new Error(payload?.error || 'Search is temporarily unavailable');
+  }
+
+  return Array.isArray(payload?.results) ? payload.results : [];
 }
 
 export async function lookupMediaDetails(input: {
