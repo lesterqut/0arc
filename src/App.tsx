@@ -11,8 +11,6 @@ import { Header } from './components/layout/Header';
 import { GlobalSearchModal } from './components/common/GlobalSearchModal';
 import { QuickAddModal } from './components/common/QuickAddModal';
 import { ToastContainer } from './components/common/ToastContainer';
-import { CloudSyncModal } from './components/common/CloudSyncModal';
-
 import { OverviewView } from './components/overview/OverviewView';
 import { ToolsView } from './components/tools/ToolsView';
 import { NotesView } from './components/notes/NotesView';
@@ -21,7 +19,7 @@ import { FavoritesView } from './components/unified/FavoritesView';
 import { SettingsView } from './components/settings/SettingsView';
 
 const MainContent: React.FC = () => {
-  const { activeTab, cloudModalOpen, closeCloudModal } = useArchive();
+  const { activeTab } = useArchive();
 
   const renderActiveView = () => {
     switch (activeTab) {
@@ -62,7 +60,6 @@ const MainContent: React.FC = () => {
       {/* Modals & Overlays */}
       <GlobalSearchModal />
       <QuickAddModal />
-      <CloudSyncModal isOpen={cloudModalOpen} onClose={closeCloudModal} />
       <ToastContainer />
     </div>
   );

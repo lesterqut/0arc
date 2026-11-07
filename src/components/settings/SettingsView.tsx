@@ -13,7 +13,6 @@ import {
   FileText,
   Film,
   Cloud,
-  Database,
 } from 'lucide-react';
 import { NavigationTab } from '../../types';
 
@@ -32,8 +31,6 @@ export const SettingsView: React.FC = () => {
     addToast,
     isCloudSyncActive,
     mongoStatus,
-    openCloudModal,
-    forceCloudSync,
   } = useArchive();
 
   // Import state
@@ -137,22 +134,9 @@ export const SettingsView: React.FC = () => {
             </p>
           </div>
 
-          <div className="flex items-center gap-2 flex-wrap shrink-0">
-            <button
-              type="button"
-              onClick={forceCloudSync}
-              className="px-3 py-1.5 rounded-lg bg-white/[0.04] hover:bg-white/[0.08] border border-white/[0.08] text-xs font-mono text-zinc-200 transition-colors"
-            >
-              Sync Now
-            </button>
-            <button
-              type="button"
-              onClick={openCloudModal}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white text-black hover:bg-zinc-200 text-xs font-semibold transition-all shadow-sm"
-            >
-              <Database className="w-3.5 h-3.5" />
-              <span>Configure Database</span>
-            </button>
+          <div className="shrink-0 text-right">
+            <p className="text-[11px] font-mono text-emerald-400">Automatic background saving</p>
+            <p className="text-[10px] text-zinc-500 mt-0.5">MongoDB Atlas</p>
           </div>
         </div>
       </div>

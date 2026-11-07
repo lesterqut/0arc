@@ -1,6 +1,10 @@
+import dotenv from 'dotenv';
 import fs from 'fs';
 import path from 'path';
 import { MongoClient, Db } from 'mongodb';
+
+dotenv.config({ path: path.resolve(process.cwd(), '.env.development.local') });
+dotenv.config();
 
 export interface CloudVaultData {
   tools: any[];
@@ -55,6 +59,10 @@ let activeMongoUri: string = process.env.MONGODB_URI || '';
 export async function initCloudStore(): Promise<CloudVaultData> {
   if (isInitialized) return cachedVault;
 
+  // Read the injected Atlas URI at request time as well as module load time.
+  // This supports Vercel serverless functions and local dev env hot reloads.
+  activeMongoUri = process.env.MONGODB_URI || activeMongoUri;
+
   try {
     if (!fs.existsSync(DATA_DIR)) {
       fs.mkdirSync(DATA_DIR, { recursive: true });
@@ -70,11 +78,7 @@ export async function initCloudStore(): Promise<CloudVaultData> {
         settings: parsed.settings || INITIAL_DATA.settings,
         version: typeof parsed.version === 'number' ? parsed.version : 1,
         updatedAt: parsed.updatedAt || new Date().toISOString(),
-        mongoUri: parsed.mongoUri || activeMongoUri,
       };
-      if (parsed.mongoUri) {
-        activeMongoUri = parsed.mongoUri;
-      }
     } else {
       // First run: save initial empty vault
       saveToDisk(cachedVault);
@@ -120,7 +124,6 @@ export async function connectMongo(uri: string): Promise<{ ok: boolean; message?
         mongoDb = null;
       }
       activeMongoUri = '';
-      cachedVault.mongoUri = undefined;
       saveToDisk(cachedVault);
       return { ok: true, message: 'Disconnected from external MongoDB.' };
     }
@@ -137,7 +140,6 @@ export async function connectMongo(uri: string): Promise<{ ok: boolean; message?
     mongoClient = client;
     mongoDb = db;
     activeMongoUri = cleanUri;
-    cachedVault.mongoUri = cleanUri;
 
     // Check if MongoDB already has saved data
     const vaultCollection = db.collection('vault_snapshot');
@@ -216,8 +218,9 @@ export async function getVaultData(): Promise<CloudVaultData & { isMongoConnecte
     }
   }
 
+  const { mongoUri: _mongoUri, ...safeVault } = cachedVault;
   return {
-    ...cachedVault,
+    ...safeVault,
     isMongoConnected: Boolean(mongoDb),
   };
 }
