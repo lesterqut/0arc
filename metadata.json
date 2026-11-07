@@ -1,0 +1,6 @@
+{
+  "name": "0arc — Personal Digital Archive",
+  "description": "Everything worth keeping. A private digital space to collect, organize, and revisit tools, notes, and watchlists.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
