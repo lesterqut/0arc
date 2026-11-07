@@ -282,7 +282,7 @@ export async function resolveMediaDetails(
   progressTotal?: number;
 }> {
   let description = '';
-  let rating = 0;
+  let rating = 8.5;
   let genre = DEFAULT_GENRE[type];
   let posterUrl = existingPoster;
   let releaseYear = year || new Date().getFullYear();
