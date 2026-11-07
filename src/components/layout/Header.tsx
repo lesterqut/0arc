@@ -1,15 +1,12 @@
 import React from 'react';
 import { useArchive } from '../../context/ArchiveContext';
-import { Search, Plus, Cloud } from 'lucide-react';
+import { Search, Plus } from 'lucide-react';
 
 export const Header: React.FC = () => {
   const {
     activeTab,
     openSearchModal,
     openQuickAdd,
-    openCloudModal,
-    isCloudSyncActive,
-    mongoStatus,
     tools,
     notes,
     media,
@@ -54,18 +51,6 @@ export const Header: React.FC = () => {
           aria-label="Search"
         >
           <Search className="w-4 h-4" />
-        </button>
-
-        <button
-          onClick={openCloudModal}
-          className="flex items-center gap-1.5 px-2 py-1.5 rounded-lg bg-white/[0.03] hover:bg-white/[0.07] border border-white/[0.08] text-xs font-mono text-zinc-300 transition-colors"
-          title="Cloud Database & Real-Time Sync"
-        >
-          <span className={`w-1.5 h-1.5 rounded-full ${isCloudSyncActive ? 'bg-emerald-400 animate-pulse' : 'bg-zinc-600'}`} />
-          <Cloud className="w-3.5 h-3.5 text-zinc-400" />
-          <span className="hidden md:inline text-[11px] text-zinc-300">
-            {mongoStatus?.isMongoConnected ? 'MongoDB' : 'Cloud Sync'}
-          </span>
         </button>
 
         <button
