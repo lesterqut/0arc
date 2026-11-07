@@ -1,5 +1,5 @@
-import type { ApiRequest, ApiResponse } from '../_lib/http';
-import { getVaultData } from '../_lib/cloudStore';
+import type { ApiRequest, ApiResponse } from '../_lib/http.js';
+import { getVaultData } from '../_lib/cloudStore.js';
 
 export default async function handler(_req: ApiRequest, res: ApiResponse) {
   try {

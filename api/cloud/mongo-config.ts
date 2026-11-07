@@ -1,5 +1,5 @@
-import type { ApiRequest, ApiResponse, readBodyField } from '../_lib/http';
-import { connectMongo } from '../_lib/cloudStore';
+import type { ApiRequest, ApiResponse, readBodyField } from '../_lib/http.js';
+import { connectMongo } from '../_lib/cloudStore.js';
 
 export default async function handler(req: ApiRequest, res: ApiResponse) {
   let body = req.body as any;
