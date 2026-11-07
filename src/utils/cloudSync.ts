@@ -134,7 +134,7 @@ export function setupRealtimeSync(
     if (isClosed) return;
 
     try {
-      eventSource = new EventSource(`/api/cloud/sync/events?clientId=${encodeURIComponent(clientId)}`);
+      eventSource = new EventSource(`/api/cloud/events?clientId=${encodeURIComponent(clientId)}`);
 
       eventSource.addEventListener('connected', () => {
         retryCount = 0;

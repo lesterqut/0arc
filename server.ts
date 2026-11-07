@@ -127,7 +127,7 @@ app.post('/api/cloud/sync', async (req, res) => {
  * Real-time Server-Sent Events (SSE) connection stream.
  * Automatically broadcasts updates across all open browsers and devices in real-time.
  */
-app.get('/api/cloud/sync/events', (req, res) => {
+app.get(['/api/cloud/sync/events', '/api/cloud/events'], (req, res) => {
   res.setHeader('Content-Type', 'text/event-stream');
   res.setHeader('Cache-Control', 'no-cache, no-transform');
   res.setHeader('Connection', 'keep-alive');

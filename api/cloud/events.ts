@@ -1,5 +1,5 @@
-import type { ApiRequest, ApiResponse } from '../../_lib/http';
-import { registerSseClient } from '../../_lib/cloudStore';
+import type { ApiRequest, ApiResponse } from '../_lib/http';
+import { registerSseClient } from '../_lib/cloudStore';
 
 export default function handler(req: any, res: any) {
   res.setHeader('Content-Type', 'text/event-stream');
