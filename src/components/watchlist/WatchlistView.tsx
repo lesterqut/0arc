@@ -170,110 +170,56 @@ export const WatchlistView: React.FC = () => {
           </p>
         </div>
       ) : (
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
-          {filteredMedia.map((item) => {
-            const progressPercent =
-              item.progressTotal && item.progressCurrent !== undefined
-                ? Math.min(100, Math.round((item.progressCurrent / item.progressTotal) * 100))
-                : 0;
-
-            return (
-              <div
-                key={item.id}
-                onClick={() => setSelectedMedia(item)}
-                role="button"
-                tabIndex={0}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter' || e.key === ' ') {
-                    e.preventDefault();
-                    setSelectedMedia(item);
-                  }
-                }}
-                className="surface-card rounded-xl overflow-hidden group flex flex-col justify-between cursor-pointer relative hover:border-white/[0.15] transition-all focus:outline-none focus-visible:border-white/30"
-              >
-                <div className="aspect-[2/3] w-full bg-[#0c0c0e] relative overflow-hidden flex items-center justify-center">
-                  {item.posterUrl ? (
-                    <img
-                      src={item.posterUrl}
-                      alt={item.title}
-                      loading="lazy"
-                      referrerPolicy="no-referrer"
-                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                    />
-                  ) : (
-                    <div className="p-4 text-center text-zinc-600 font-mono text-[10px] uppercase">
-                      {TYPE_LABELS[item.type]}
-                    </div>
-                  )}
-
-                  <div className="absolute inset-0 bg-gradient-to-t from-[#0c0c0d] via-transparent to-black/40 pointer-events-none" />
-
-                  {item.rating > 0 && (
-                    <div className="absolute top-2 left-2 px-1.5 py-0.5 rounded bg-black/75 backdrop-blur-md border border-white/[0.1] text-[10px] font-mono font-medium text-amber-400">
-                      ★ {item.rating}
-                    </div>
-                  )}
-
+        <div className="space-y-2">
+          {filteredMedia.map((item) => (
+            <div
+              key={item.id}
+              onClick={() => setSelectedMedia(item)}
+              role="button"
+              tabIndex={0}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  e.preventDefault();
+                  setSelectedMedia(item);
+                }
+              }}
+              className="surface-card rounded-xl p-4 cursor-pointer group hover:border-white/[0.15] transition-all focus:outline-none focus-visible:border-white/30"
+            >
+              <div className="flex items-start justify-between gap-4">
+                <div className="min-w-0">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <h3 className="text-sm font-semibold text-white group-hover:text-zinc-200">{item.title}</h3>
+                    <span className="text-[10px] font-mono text-zinc-500">{TYPE_LABELS[item.type]}</span>
+                    <span className="text-[10px] font-mono text-zinc-500">{item.releaseYear}</span>
+                  </div>
+                  <p className="text-[11px] text-zinc-400 mt-1">
+                    {item.genre || 'Uncategorized'} · {STATUS_LABELS[item.status]}
+                  </p>
+                  <p className="text-xs text-zinc-300 mt-2 line-clamp-2 leading-relaxed">{item.description}</p>
+                  {item.progressTotal ? (
+                    <p className="text-[10px] font-mono text-zinc-500 mt-2">
+                      Progress: {item.progressCurrent || 0}/{item.progressTotal}
+                    </p>
+                  ) : null}
+                </div>
+                <div className="flex items-center gap-3 shrink-0">
+                  <span className="text-xs font-mono text-amber-400">
+                    {item.rating > 0 && item.rating !== 8.5 ? `★ ${item.rating}/10` : 'Rating unavailable'}
+                  </span>
                   <button
                     onClick={(e) => {
                       e.stopPropagation();
                       toggleMediaFavorite(item.id);
                     }}
-                    className="absolute top-1.5 right-1.5 p-2 rounded-lg bg-black/75 backdrop-blur-md border border-white/[0.08] text-zinc-400 hover:text-amber-400 transition-colors"
+                    className="p-1 rounded text-zinc-400 hover:text-amber-400 transition-colors"
                     aria-label={item.isFavorite ? 'Remove from favorites' : 'Add to favorites'}
                   >
-                    <Star
-                      className={`w-3.5 h-3.5 ${
-                        item.isFavorite ? 'fill-amber-400 text-amber-400' : ''
-                      }`}
-                    />
+                    <Star className={`w-4 h-4 ${item.isFavorite ? 'fill-amber-400 text-amber-400' : ''}`} />
                   </button>
-
-                  <div className="absolute bottom-2 left-2 right-2 flex items-center justify-between gap-2 text-[10px] font-mono">
-                    <span className="text-zinc-300 truncate font-medium">
-                      {STATUS_LABELS[item.status]}
-                    </span>
-                    <span className="text-zinc-500 shrink-0">{item.releaseYear}</span>
-                  </div>
-                </div>
-
-                <div className="p-3">
-                  <h3 className="text-xs font-semibold text-white truncate">{item.title}</h3>
-                  <p className="text-[10px] text-zinc-400 truncate mt-0.5">
-                    {TYPE_LABELS[item.type]}
-                    {item.genre ? ` · ${item.genre}` : ''}
-                  </p>
-
-                  {item.progressTotal ? (
-                    <div className="mt-2 pt-2 border-t border-white/[0.06] flex items-center justify-between gap-2">
-                      <div className="flex-1 min-w-0">
-                        <p className="text-[10px] font-mono text-zinc-400">
-                          Ep {item.progressCurrent || 0}/{item.progressTotal}
-                        </p>
-                        <div className="w-full h-1 bg-white/[0.06] rounded-full overflow-hidden mt-1">
-                          <div
-                            className="h-full bg-zinc-300"
-                            style={{ width: `${progressPercent}%` }}
-                          />
-                        </div>
-                      </div>
-
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          updateMediaProgress(item.id, (item.progressCurrent || 0) + 1);
-                        }}
-                        className="px-2 py-1 rounded bg-white/[0.06] hover:bg-white/[0.12] border border-white/[0.08] text-[10px] font-mono text-zinc-300 hover:text-white transition-colors shrink-0"
-                        aria-label="Advance one episode"
-                      >
-                        +1
-                      </button>
-                    </div>
-                  ) : null}
                 </div>
               </div>
-            );
-          })}
+            </div>
+          ))}
         </div>
       )}
 
