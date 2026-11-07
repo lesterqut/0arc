@@ -1,6 +1,5 @@
 import fs from 'fs';
 import path from 'path';
-import type { Response } from 'express';
 import { MongoClient, Db } from 'mongodb';
 
 export interface CloudVaultData {
@@ -40,7 +39,7 @@ let isInitialized = false;
 // Active SSE client connections for real-time syncing
 interface SseClient {
   id: string;
-  res: Response;
+  res: any;
   connectedAt: Date;
 }
 const sseClients = new Map<string, SseClient>();
@@ -270,7 +269,7 @@ export async function saveVaultData(
 /**
  * Register SSE client for real-time synchronization.
  */
-export function registerSseClient(id: string, res: Response): void {
+export function registerSseClient(id: string, res: any): void {
   sseClients.set(id, {
     id,
     res,
