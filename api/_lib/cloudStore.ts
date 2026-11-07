@@ -253,7 +253,7 @@ export async function saveVaultData(
 
   // Persist to MongoDB if active
   if (mongoDb) {
-    syncToMongo(cachedVault).catch(() => {});
+    await syncToMongo(cachedVault);
   }
 
   // Broadcast to all other devices in real-time

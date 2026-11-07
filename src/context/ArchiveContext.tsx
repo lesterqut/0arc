@@ -323,12 +323,17 @@ export const ArchiveProvider: React.FC<{ children: React.ReactNode }> = ({ child
           applyCloudSnapshot(cloudData);
         } else if (!cloudHasData && (!localToolsEmpty || !localNotesEmpty || !localMediaEmpty)) {
           // First time migrating local browser data up to the cloud!
-          pushCloudVault(clientIdRef.current, {
+          const migrationResult = await pushCloudVault(clientIdRef.current, {
             tools,
             notes,
             media,
             settings,
           });
+          if (migrationResult.ok) {
+            setCloudSyncStatus('synced');
+          } else {
+            setCloudSyncStatus('error');
+          }
         }
       }
 
@@ -391,17 +396,14 @@ export const ArchiveProvider: React.FC<{ children: React.ReactNode }> = ({ child
     }
 
     syncTimeoutRef.current = setTimeout(async () => {
-      try {
-        await pushCloudVault(clientIdRef.current, {
-          tools,
-          notes,
-          media,
-          settings,
-        });
-        setCloudSyncStatus('synced');
-      } catch {
-        setCloudSyncStatus('error');
-      }
+      setCloudSyncStatus('syncing');
+      const result = await pushCloudVault(clientIdRef.current, {
+        tools,
+        notes,
+        media,
+        settings,
+      });
+      setCloudSyncStatus(result.ok ? 'synced' : 'error');
     }, 350);
 
     return () => {

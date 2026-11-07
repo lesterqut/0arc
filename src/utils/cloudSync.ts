@@ -34,7 +34,10 @@ export async function fetchCloudVault(): Promise<{
     if (!res.ok) {
       throw new Error(`HTTP ${res.status}`);
     }
-    const json = await res.json();
+    const json = (await res.json()) as { ok?: boolean; data?: CloudVaultPayload; error?: string };
+    if (json.ok === false || !json.data) {
+      return { ok: false, error: json.error || 'Cloud vault is unavailable' };
+    }
     return { ok: true, data: json.data };
   } catch (err) {
     return {
@@ -70,7 +73,10 @@ export async function pushCloudVault(
     if (!res.ok) {
       throw new Error(`HTTP ${res.status}`);
     }
-    const json = await res.json();
+    const json = (await res.json()) as { ok?: boolean; version?: number; error?: string };
+    if (json.ok === false) {
+      return { ok: false, error: json.error || 'Cloud vault could not be saved' };
+    }
     return { ok: true, version: json.version };
   } catch (err) {
     return {
