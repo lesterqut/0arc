@@ -1,5 +1,5 @@
-import { lookupMedia } from '../_lib/media';
-import { readBodyField, type ApiRequest, type ApiResponse } from '../_lib/http';
+import { lookupMedia } from '../_lib/media.js';
+import { readBodyField, type ApiRequest, type ApiResponse } from '../_lib/http.js';
 
 export default async function handler(req: ApiRequest, res: ApiResponse) {
   if (req.method !== 'POST') {

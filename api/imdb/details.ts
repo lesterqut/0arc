@@ -1,5 +1,5 @@
-import { resolveMediaDetails, type MediaKind } from '../_lib/media';
-import { readBodyField, readBodyNumber, type ApiRequest, type ApiResponse } from '../_lib/http';
+import { resolveMediaDetails, type MediaKind } from '../_lib/media.js';
+import { readBodyField, readBodyNumber, type ApiRequest, type ApiResponse } from '../_lib/http.js';
 
 export default async function handler(req: ApiRequest, res: ApiResponse) {
   if (req.method !== 'POST') {

@@ -1,5 +1,5 @@
-import { searchImdb } from '../_lib/media';
-import { readParam, type ApiRequest, type ApiResponse } from '../_lib/http';
+import { searchImdb } from '../_lib/media.js';
+import { readParam, type ApiRequest, type ApiResponse } from '../_lib/http.js';
 
 export default async function handler(req: ApiRequest, res: ApiResponse) {
   const query = readParam(req.query?.q);
