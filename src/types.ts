@@ -82,6 +82,14 @@ export interface ArchiveSnapshot {
   notes: NoteItem[];
   media: MediaItem[];
   settings: AppSettings;
+  gallery?: Array<{
+    id: string;
+    name: string;
+    type: string;
+    size: number;
+    createdAt: number;
+    dataUrl: string;
+  }>;
 }
 
 export interface ToastMessage {

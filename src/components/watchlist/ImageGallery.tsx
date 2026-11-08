@@ -13,6 +13,15 @@ type GalleryImage = {
 
 type StoredImage = Omit<GalleryImage, 'url'>;
 
+export type GalleryExportImage = {
+  id: string;
+  name: string;
+  type: string;
+  size: number;
+  createdAt: number;
+  dataUrl: string;
+};
+
 const DB_NAME = '0arc-image-gallery';
 const STORE_NAME = 'images';
 const ACCEPTED_IMAGES = 'image/*,.avif,.bmp,.gif,.heic,.heif,.jpeg,.jpg,.png,.svg,.tif,.tiff,.webp';
@@ -63,6 +72,47 @@ const formatSize = (bytes: number) => {
   if (bytes < 1024 * 1024) return `${Math.max(1, Math.round(bytes / 1024))} KB`;
   return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
 };
+
+const blobToDataUrl = (blob: Blob) =>
+  new Promise<string>((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(String(reader.result));
+    reader.onerror = () => reject(reader.error);
+    reader.readAsDataURL(blob);
+  });
+
+const compressForExport = async (blob: Blob) => {
+  if (blob.type === 'image/svg+xml' || blob.type === 'image/gif') return blobToDataUrl(blob);
+  try {
+    const sourceUrl = URL.createObjectURL(blob);
+    const image = new Image();
+    image.crossOrigin = 'anonymous';
+    image.src = sourceUrl;
+    await image.decode();
+    const scale = Math.min(1, 1600 / Math.max(image.naturalWidth, image.naturalHeight));
+    const canvas = document.createElement('canvas');
+    canvas.width = Math.max(1, Math.round(image.naturalWidth * scale));
+    canvas.height = Math.max(1, Math.round(image.naturalHeight * scale));
+    canvas.getContext('2d')?.drawImage(image, 0, 0, canvas.width, canvas.height);
+    URL.revokeObjectURL(sourceUrl);
+    return canvas.toDataURL('image/webp', 0.78);
+  } catch {
+    return blobToDataUrl(blob);
+  }
+};
+
+export async function exportGalleryImages(): Promise<GalleryExportImage[]> {
+  if (!('indexedDB' in window)) return [];
+  const stored = await readImages();
+  return Promise.all(stored.map(async (image) => ({
+    id: image.id,
+    name: image.name,
+    type: image.type,
+    size: image.size,
+    createdAt: image.createdAt,
+    dataUrl: await compressForExport(image.blob),
+  })));
+}
 
 export const ImageGallery: React.FC = () => {
   const inputRef = useRef<HTMLInputElement>(null);
