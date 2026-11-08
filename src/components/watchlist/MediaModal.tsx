@@ -274,7 +274,19 @@ export const MediaModal: React.FC<MediaModalProps> = ({
               )}
             </div>
 
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              <div>
+                <label className="block text-[11px] font-mono text-zinc-400 mb-1.5">Type</label>
+                <select
+                  value={type}
+                  onChange={(e) => setType(e.target.value as MediaType)}
+                  className={`${inputClass} font-mono`}
+                >
+                  <option value="movie">Movie</option>
+                  <option value="series">Series</option>
+                  <option value="anime">Anime</option>
+                </select>
+              </div>
               <div>
                 <label className="block text-[11px] font-mono text-zinc-400 mb-1.5">Status</label>
                 <select

@@ -1,5 +1,5 @@
 import React from 'react';
-import { MediaItem, MediaStatus } from '../../types';
+import { MediaItem, MediaStatus, MediaType } from '../../types';
 import { X, Star, Film, Edit2, Trash2 } from 'lucide-react';
 
 interface MediaDetailModalProps {
@@ -9,6 +9,7 @@ interface MediaDetailModalProps {
   onDelete: (media: MediaItem) => void;
   onToggleFavorite: (id: string) => void;
   onUpdateStatus: (id: string, status: MediaStatus) => void;
+  onUpdateType: (id: string, type: MediaType) => void;
 }
 
 const STATUS_OPTIONS: { value: MediaStatus; label: string }[] = [
@@ -30,6 +31,7 @@ export const MediaDetailModal: React.FC<MediaDetailModalProps> = ({
   onDelete,
   onToggleFavorite,
   onUpdateStatus,
+  onUpdateType,
 }) => {
   if (!media) return null;
 
@@ -112,21 +114,36 @@ export const MediaDetailModal: React.FC<MediaDetailModalProps> = ({
               </div>
             </div>
 
-            {/* Status */}
-            <div className="flex items-center justify-between gap-3 p-3 rounded-lg bg-white/[0.02] border border-white/[0.06]">
-              <span className="text-xs text-zinc-400 font-mono">Status</span>
-              <select
-                value={media.status}
-                onChange={(e) => onUpdateStatus(media.id, e.target.value as MediaStatus)}
-                className="px-2.5 py-1.5 rounded-lg bg-black/50 border border-white/[0.08] text-xs font-mono text-white focus:outline-none focus:border-white/30"
-                aria-label="Watchlist status"
-              >
-                {STATUS_OPTIONS.map((option) => (
-                  <option key={option.value} value={option.value}>
-                    {option.label}
-                  </option>
-                ))}
-              </select>
+            {/* Type and status */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 p-3 rounded-lg bg-white/[0.02] border border-white/[0.06]">
+              <label className="flex items-center justify-between gap-2 text-xs text-zinc-400 font-mono">
+                Type
+                <select
+                  value={media.type}
+                  onChange={(e) => onUpdateType(media.id, e.target.value as MediaType)}
+                  className="px-2.5 py-1.5 rounded-lg bg-black/50 border border-white/[0.08] text-xs font-mono text-white focus:outline-none focus:border-white/30"
+                  aria-label="Media type"
+                >
+                  <option value="movie">Movie</option>
+                  <option value="series">Series</option>
+                  <option value="anime">Anime</option>
+                </select>
+              </label>
+              <label className="flex items-center justify-between gap-2 text-xs text-zinc-400 font-mono">
+                Status
+                <select
+                  value={media.status}
+                  onChange={(e) => onUpdateStatus(media.id, e.target.value as MediaStatus)}
+                  className="px-2.5 py-1.5 rounded-lg bg-black/50 border border-white/[0.08] text-xs font-mono text-white focus:outline-none focus:border-white/30"
+                  aria-label="Watchlist status"
+                >
+                  {STATUS_OPTIONS.map((option) => (
+                    <option key={option.value} value={option.value}>
+                      {option.label}
+                    </option>
+                  ))}
+                </select>
+              </label>
             </div>
 
             <div>

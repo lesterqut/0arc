@@ -267,10 +267,15 @@ export const WatchlistView: React.FC = () => {
           }
         }}
         onToggleFavorite={toggleMediaFavorite}
-        onUpdateStatus={(id, status) => {
-          updateMedia(id, { status });
-          setSelectedMedia((current) => (current ? { ...current, status } : current));
-        }}
+          onUpdateStatus={(id, status) => {
+            updateMedia(id, { status });
+            setSelectedMedia((selected) => (selected ? { ...selected, status } : selected));
+          }}
+          onUpdateType={(id, type) => {
+            updateMedia(id, { type });
+            setSelectedMedia((selected) => (selected ? { ...selected, type } : selected));
+          }}
+
       />
 
       <MediaModal

@@ -1,6 +1,6 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import { ToolItem, ToolCategory } from '../../types';
-import { X, Sparkles } from 'lucide-react';
+import { X } from 'lucide-react';
 
 interface ToolModalProps {
   isOpen: boolean;
@@ -21,11 +21,6 @@ export const ToolModal: React.FC<ToolModalProps> = ({
   const [category, setCategory] = useState<ToolCategory>('Development');
   const [tags, setTags] = useState('');
   const [isFavorite, setIsFavorite] = useState(false);
-  const [isFinding, setIsFinding] = useState(false);
-  const [isCorrecting, setIsCorrecting] = useState(false);
-  const [aiError, setAiError] = useState('');
-  const [aiFilled, setAiFilled] = useState(false);
-  const originalFields = useRef({ title: '', description: '', url: '', category: 'Development' as ToolCategory, tags: '' });
 
   useEffect(() => {
     if (toolToEdit) {
@@ -46,73 +41,6 @@ export const ToolModal: React.FC<ToolModalProps> = ({
   }, [toolToEdit, isOpen]);
 
   if (!isOpen) return null;
-
-  const handleFind = async () => {
-    if (aiFilled) {
-      setTitle(originalFields.current.title);
-      setDescription(originalFields.current.description);
-      setUrl(originalFields.current.url);
-      setCategory(originalFields.current.category);
-      setTags(originalFields.current.tags);
-      setAiFilled(false);
-      setAiError('');
-      return;
-    }
-
-    if (!title.trim()) {
-      setAiError('Enter a tool name before finding details.');
-      return;
-    }
-
-    originalFields.current = { title, description, url, category, tags };
-    setIsFinding(true);
-    setAiError('');
-    try {
-      const response = await fetch('/api/ai/enrich', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ kind: 'tool', title, description, url, category, tags: tags.split(',').map((tag) => tag.trim()).filter(Boolean) }),
-      });
-      const payload = await response.json();
-      if (!response.ok || !payload.ok || !payload.data) throw new Error(payload.error || 'Unable to find details.');
-      const data = payload.data;
-      setTitle(title.trim() || data.title || '');
-      setDescription(description.trim() || data.description || '');
-      setUrl(url.trim() || data.url || '');
-      setCategory(data.category || category);
-      setTags(tags.trim() || (data.tags || []).join(', '));
-      setAiFilled(true);
-    } catch (error) {
-      setAiError(error instanceof Error ? error.message : 'Unable to find details right now.');
-    } finally {
-      setIsFinding(false);
-    }
-  };
-
-  const handleCorrect = async () => {
-    setIsCorrecting(true);
-    setAiError('');
-    try {
-      const response = await fetch('/api/ai/correct', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          title,
-          content: description,
-          tags: tags.split(',').map((tag) => tag.trim()).filter(Boolean),
-        }),
-      });
-      const payload = await response.json();
-      if (!response.ok || !payload.ok || !payload.data) throw new Error(payload.error || 'Unable to correct text.');
-      setTitle(payload.data.title || title);
-      setDescription(payload.data.content || description);
-      setTags((payload.data.tags || []).join(', '));
-    } catch (error) {
-      setAiError(error instanceof Error ? error.message : 'Unable to correct text right now.');
-    } finally {
-      setIsCorrecting(false);
-    }
-  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -144,25 +72,6 @@ export const ToolModal: React.FC<ToolModalProps> = ({
             {toolToEdit ? 'Edit Tool' : 'Add Tool'}
           </h2>
           <div className="flex items-center gap-1">
-            <button
-              type="button"
-              onClick={handleCorrect}
-              disabled={isCorrecting}
-              className="flex items-center gap-1.5 rounded-md border border-emerald-400/25 bg-emerald-400/10 px-2.5 py-1.5 text-[11px] font-medium text-emerald-200 transition-colors hover:bg-emerald-400/20 disabled:cursor-wait disabled:opacity-60"
-              title="Fix spelling and capitalization"
-            >
-              <Sparkles className="h-3.5 w-3.5" />
-              {isCorrecting ? 'Fixing...' : 'Fix text'}
-            </button>
-            <button
-              type="button"
-              onClick={handleFind}
-              disabled={isFinding}
-              className="flex items-center gap-1.5 rounded-md border border-violet-400/25 bg-violet-400/10 px-2.5 py-1.5 text-[11px] font-medium text-violet-200 transition-colors hover:bg-violet-400/20 disabled:cursor-wait disabled:opacity-60"
-            >
-              <Sparkles className="h-3.5 w-3.5" />
-              {isFinding ? 'Finding...' : aiFilled ? 'Clear found' : 'Find details'}
-            </button>
             <button
               onClick={onClose}
               className="text-zinc-400 hover:text-white p-2 -mr-2 rounded-md hover:bg-white/[0.06] transition-colors"
