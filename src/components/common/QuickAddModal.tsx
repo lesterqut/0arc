@@ -501,34 +501,40 @@ export const QuickAddModal: React.FC = () => {
                 </div>
 
                 {pendingMedia.length > 0 && (
-                  <div className="rounded-lg border border-white/[0.08] bg-white/[0.025] p-3 space-y-2">
-                    <div className="flex items-center justify-between">
-                      <span className="text-[10px] font-mono uppercase tracking-wider text-zinc-400">
-                        Ready to add ({pendingMedia.length})
-                      </span>
-                      <button
-                        type="button"
-                        onClick={() => setPendingMedia([])}
-                        className="text-[10px] font-mono text-zinc-500 hover:text-white"
+                  <div className="space-y-2">
+                    {pendingMedia.map((item) => (
+                      <div
+                        key={`${item.type}-${item.title}`}
+                        className="flex gap-3 rounded-xl border border-white/[0.08] bg-white/[0.035] p-3"
                       >
-                        Clear all
-                      </button>
-                    </div>
-                    <div className="flex flex-wrap gap-1.5">
-                      {pendingMedia.map((item) => (
-                        <span key={`${item.type}-${item.title}`} className="inline-flex items-center gap-1 rounded-md bg-white/[0.07] px-2 py-1 text-[11px] text-zinc-200">
-                          {item.title}
-                          <button
-                            type="button"
-                            onClick={() => setPendingMedia((current) => current.filter((entry) => entry.title !== item.title))}
-                            className="text-zinc-500 hover:text-white"
-                            aria-label={`Remove ${item.title}`}
-                          >
-                            ×
-                          </button>
-                        </span>
-                      ))}
-                    </div>
+                        <div className="h-16 w-11 shrink-0 overflow-hidden rounded-md bg-white/[0.06]">
+                          {item.posterUrl ? (
+                            <img src={item.posterUrl} alt="" className="h-full w-full object-cover" />
+                          ) : null}
+                        </div>
+                        <div className="min-w-0 flex-1">
+                          <div className="flex items-start justify-between gap-2">
+                            <div>
+                              <p className="truncate text-sm font-medium text-white">{item.title}</p>
+                              <p className="mt-0.5 text-[10px] font-mono uppercase tracking-wider text-zinc-500">
+                                {item.type === 'anime' ? 'Anime' : item.type === 'series' ? 'Series' : 'Movie'}
+                              </p>
+                            </div>
+                            <button
+                              type="button"
+                              onClick={() => setPendingMedia((current) => current.filter((entry) => entry.title !== item.title))}
+                              className="shrink-0 text-zinc-500 hover:text-white"
+                              aria-label={`Remove ${item.title}`}
+                            >
+                              ×
+                            </button>
+                          </div>
+                          <p className="mt-1 line-clamp-2 text-xs leading-relaxed text-zinc-400">
+                            {item.description || 'No synopsis available.'}
+                          </p>
+                        </div>
+                      </div>
+                    ))}
                   </div>
                 )}
 
