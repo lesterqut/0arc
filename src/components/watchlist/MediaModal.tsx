@@ -14,8 +14,6 @@ const STATUS_OPTIONS: { value: MediaStatus; label: string }[] = [
   { value: 'want_to_watch', label: 'Watchlist' },
   { value: 'watching', label: 'Watching' },
   { value: 'completed', label: 'Completed' },
-  { value: 'on_hold', label: 'On Hold' },
-  { value: 'dropped', label: 'Dropped' },
 ];
 
 export const MediaModal: React.FC<MediaModalProps> = ({
@@ -32,8 +30,6 @@ export const MediaModal: React.FC<MediaModalProps> = ({
   const [genre, setGenre] = useState('');
   const [releaseYear, setReleaseYear] = useState<number>(new Date().getFullYear());
   const [rating, setRating] = useState<number>(0);
-  const [progressTotal, setProgressTotal] = useState<string>('');
-  const [progressCurrent, setProgressCurrent] = useState(0);
 
   const [imdbCandidates, setImdbCandidates] = useState<MediaCandidate[]>([]);
   const [isSearchingImdb, setIsSearchingImdb] = useState(false);
@@ -51,8 +47,6 @@ export const MediaModal: React.FC<MediaModalProps> = ({
     setGenre(mediaToEdit.genre);
     setReleaseYear(mediaToEdit.releaseYear);
     setRating(mediaToEdit.rating);
-    setProgressCurrent(mediaToEdit.progressCurrent || 0);
-    setProgressTotal(mediaToEdit.progressTotal ? String(mediaToEdit.progressTotal) : '');
     setImdbCandidates([]);
     setShowCandidates(false);
   }, [mediaToEdit]);
@@ -132,8 +126,6 @@ export const MediaModal: React.FC<MediaModalProps> = ({
       if (fillResult?.rating) setRating(Number(fillResult.rating));
     }
 
-    const total = Number(progressTotal) > 0 ? Number(progressTotal) : undefined;
-
     onSave({
       title: cleanTitle,
       type,
@@ -143,8 +135,6 @@ export const MediaModal: React.FC<MediaModalProps> = ({
       genre: genre.trim() || 'Uncategorized',
       releaseYear: releaseYear || new Date().getFullYear(),
       rating: rating || 0,
-      progressCurrent: Math.min(progressCurrent, total ?? progressCurrent),
-      progressTotal: total,
       isFavorite: mediaToEdit.isFavorite,
     });
     onClose();
@@ -232,7 +222,7 @@ export const MediaModal: React.FC<MediaModalProps> = ({
               </div>
 
               {showCandidates && imdbCandidates.length > 0 && (
-                <div className="absolute left-0 right-0 top-full mt-1.5 z-30 surface-card rounded-xl border border-white/[0.12] shadow-2xl overflow-hidden max-h-56 overflow-y-auto overscroll-contain divide-y divide-white/[0.04]">
+                <div className="absolute left-0 right-0 top-full mt-1.5 z-50 rounded-xl border border-white/[0.14] bg-[#18181c]/95 backdrop-blur-xl shadow-2xl overflow-hidden max-h-56 overflow-y-auto overscroll-contain divide-y divide-white/[0.04]">
                   <div className="px-3 py-2 text-[10px] font-mono text-zinc-400 bg-white/[0.03] flex items-center justify-between sticky top-0">
                     <span className="text-zinc-400">Pick the exact match</span>
                     <button
@@ -284,7 +274,19 @@ export const MediaModal: React.FC<MediaModalProps> = ({
               )}
             </div>
 
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              <div>
+                <label className="block text-[11px] font-mono text-zinc-400 mb-1.5">Type</label>
+                <select
+                  value={type}
+                  onChange={(e) => setType(e.target.value as MediaType)}
+                  className={`${inputClass} font-mono`}
+                >
+                  <option value="movie">Movie</option>
+                  <option value="series">Series</option>
+                  <option value="anime">Anime</option>
+                </select>
+              </div>
               <div>
                 <label className="block text-[11px] font-mono text-zinc-400 mb-1.5">Status</label>
                 <select
@@ -299,38 +301,18 @@ export const MediaModal: React.FC<MediaModalProps> = ({
                   ))}
                 </select>
               </div>
-
-              {type !== 'movie' ? (
-                <div>
-                  <label className="block text-[11px] font-mono text-zinc-400 mb-1.5">
-                    Episodes
-                  </label>
-                  <input
-                    type="number"
-                    min={1}
-                    inputMode="numeric"
-                    placeholder="12"
-                    value={progressTotal}
-                    onChange={(e) => setProgressTotal(e.target.value)}
-                    className={`${inputClass} font-mono`}
-                  />
-                </div>
-              ) : (
-                <div>
-                  <label className="block text-[11px] font-mono text-zinc-400 mb-1.5">
-                    Year
-                  </label>
-                  <input
-                    type="number"
-                    min={1888}
-                    max={2100}
-                    inputMode="numeric"
-                    value={releaseYear}
-                    onChange={(e) => setReleaseYear(Number(e.target.value))}
-                    className={`${inputClass} font-mono`}
-                  />
-                </div>
-              )}
+              <div>
+                <label className="block text-[11px] font-mono text-zinc-400 mb-1.5">Year</label>
+                <input
+                  type="number"
+                  min={1888}
+                  max={2100}
+                  inputMode="numeric"
+                  value={releaseYear}
+                  onChange={(e) => setReleaseYear(Number(e.target.value))}
+                  className={`${inputClass} font-mono`}
+                />
+              </div>
             </div>
 
             {(posterUrl || description) && (

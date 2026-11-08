@@ -14,7 +14,6 @@ interface MediaPreview {
   genre?: string;
   releaseYear?: number;
   rating?: number;
-  progressTotal?: number;
 }
 
 const ADD_STATUSES: { value: MediaStatus; label: string }[] = [
@@ -55,6 +54,7 @@ export const QuickAddModal: React.FC = () => {
   const [isSearchingImdb, setIsSearchingImdb] = useState(false);
   const [showCandidates, setShowCandidates] = useState(false);
   const [mediaPreview, setMediaPreview] = useState<MediaPreview | null>(null);
+  const [pendingMedia, setPendingMedia] = useState<MediaPreview[]>([]);
   const searchTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const resetForm = () => {
@@ -69,6 +69,7 @@ export const QuickAddModal: React.FC = () => {
     setMediaTitle('');
     setMediaStatus('want_to_watch');
     setMediaPreview(null);
+    setPendingMedia([]);
     setMediaLoading(false);
     setImdbCandidates([]);
     setShowCandidates(false);
@@ -136,9 +137,7 @@ export const QuickAddModal: React.FC = () => {
   };
 
   const handleSelectCandidate = async (candidate: MediaCandidate) => {
-    setMediaTitle(candidate.title);
     setShowCandidates(false);
-    setMediaPreview({ title: candidate.title, type: candidate.type, posterUrl: candidate.posterUrl });
     setMediaLoading(true);
     const details = await fetchDetails({
       title: candidate.title,
@@ -147,7 +146,13 @@ export const QuickAddModal: React.FC = () => {
       imdbId: candidate.id,
       posterUrl: candidate.posterUrl,
     });
-    if (details) setMediaPreview({ ...details, posterUrl: details.posterUrl || candidate.posterUrl });
+    const selected = details
+      ? { ...details, title: details.title || candidate.title, type: details.type || candidate.type, posterUrl: details.posterUrl || candidate.posterUrl }
+      : { title: candidate.title, type: candidate.type, posterUrl: candidate.posterUrl };
+    setPendingMedia((current) => [...current.filter((item) => item.title !== selected.title), selected]);
+    setMediaTitle('');
+    setMediaPreview(null);
+    setImdbCandidates([]);
     setMediaLoading(false);
   };
 
@@ -179,27 +184,29 @@ export const QuickAddModal: React.FC = () => {
       });
     } else {
       const title = mediaTitle.trim();
-      if (!title) return;
+      let itemsToAdd = pendingMedia;
 
-      let preview = mediaPreview;
-      if (!preview?.description) {
+      if (title) {
         setMediaLoading(true);
-        preview = (await fetchDetails({ title, type: preview?.type })) || preview;
+        const manualPreview = (await fetchDetails({ title, type: mediaPreview?.type })) || mediaPreview;
         setMediaLoading(false);
+        itemsToAdd = [...itemsToAdd, manualPreview || { title, type: 'movie' }];
       }
 
-      addMedia({
-        title: preview?.title || title,
-        type: preview?.type || 'movie',
-        description: preview?.description || 'Saved to your watchlist.',
-        posterUrl: preview?.posterUrl,
-        genre: preview?.genre || 'Uncategorized',
-        releaseYear: preview?.releaseYear || new Date().getFullYear(),
-        rating: preview?.rating || 0,
-        status: mediaStatus,
-        progressCurrent: 0,
-        progressTotal: preview?.progressTotal,
-        isFavorite: false,
+      if (itemsToAdd.length === 0) return;
+
+      itemsToAdd.forEach((item) => {
+        addMedia({
+          title: item.title || 'Untitled',
+          type: item.type || 'movie',
+          description: item.description || 'Saved to your watchlist.',
+          posterUrl: item.posterUrl,
+          genre: item.genre || 'Uncategorized',
+          releaseYear: item.releaseYear || new Date().getFullYear(),
+          rating: item.rating || 0,
+          status: mediaStatus,
+          isFavorite: false,
+        });
       });
     }
 
@@ -399,7 +406,7 @@ export const QuickAddModal: React.FC = () => {
                   <div className="flex gap-2">
                     <input
                       type="text"
-                      required
+                      required={pendingMedia.length === 0}
                       autoFocus
                       placeholder="e.g. Dune, Severance, Frieren"
                       value={mediaTitle}
@@ -426,7 +433,7 @@ export const QuickAddModal: React.FC = () => {
                   </div>
 
                   {showCandidates && imdbCandidates.length > 0 && (
-                    <div className="absolute left-0 right-0 top-full mt-1.5 z-30 surface-card rounded-xl border border-white/[0.12] shadow-2xl overflow-hidden max-h-56 overflow-y-auto overscroll-contain divide-y divide-white/[0.04]">
+                    <div className="absolute left-0 right-0 top-full mt-1.5 z-50 rounded-xl border border-white/[0.14] bg-[#18181c]/95 backdrop-blur-xl shadow-2xl overflow-hidden max-h-56 overflow-y-auto overscroll-contain divide-y divide-white/[0.04]">
                       <div className="px-3 py-2 text-[10px] font-mono text-zinc-400 bg-white/[0.03] flex items-center justify-between sticky top-0">
                         <span>Pick the exact match</span>
                         <button
@@ -493,6 +500,44 @@ export const QuickAddModal: React.FC = () => {
                   </select>
                 </div>
 
+                {pendingMedia.length > 0 && (
+                  <div className="space-y-2">
+                    {pendingMedia.map((item) => (
+                      <div
+                        key={`${item.type}-${item.title}`}
+                        className="flex gap-3 rounded-xl border border-white/[0.08] bg-white/[0.035] p-3"
+                      >
+                        <div className="h-16 w-11 shrink-0 overflow-hidden rounded-md bg-white/[0.06]">
+                          {item.posterUrl ? (
+                            <img src={item.posterUrl} alt="" className="h-full w-full object-cover" />
+                          ) : null}
+                        </div>
+                        <div className="min-w-0 flex-1">
+                          <div className="flex items-start justify-between gap-2">
+                            <div>
+                              <p className="truncate text-sm font-medium text-white">{item.title}</p>
+                              <p className="mt-0.5 text-[10px] font-mono uppercase tracking-wider text-zinc-500">
+                                {item.type === 'anime' ? 'Anime' : item.type === 'series' ? 'Series' : 'Movie'}
+                              </p>
+                            </div>
+                            <button
+                              type="button"
+                              onClick={() => setPendingMedia((current) => current.filter((entry) => entry.title !== item.title))}
+                              className="shrink-0 text-zinc-500 hover:text-white"
+                              aria-label={`Remove ${item.title}`}
+                            >
+                              ×
+                            </button>
+                          </div>
+                          <p className="mt-1 line-clamp-2 text-xs leading-relaxed text-zinc-400">
+                            {item.description || 'No synopsis available.'}
+                          </p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
                 {mediaPreview?.description && (
                   <div className="p-3 rounded-lg bg-white/[0.025] border border-white/[0.08] flex gap-3 items-start">
                     {mediaPreview.posterUrl ? (
@@ -552,7 +597,7 @@ export const QuickAddModal: React.FC = () => {
               className="flex-1 sm:flex-none px-4 py-2.5 sm:py-1.5 text-xs font-semibold text-black bg-white hover:bg-zinc-200 rounded-lg transition-colors disabled:opacity-40 flex items-center justify-center gap-1.5"
             >
               {mediaLoading && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
-              <span>Save Entry</span>
+              <span>{selectedType === 'watchlist' ? 'Done' : 'Save Entry'}</span>
             </button>
           </div>
         </form>

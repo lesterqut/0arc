@@ -71,13 +71,15 @@ export const ToolModal: React.FC<ToolModalProps> = ({
           <h2 className="text-sm font-semibold text-white tracking-tight">
             {toolToEdit ? 'Edit Tool' : 'Add Tool'}
           </h2>
-          <button
-            onClick={onClose}
-            className="text-zinc-400 hover:text-white p-2 -mr-2 rounded-md hover:bg-white/[0.06] transition-colors"
-            aria-label="Close"
-          >
-            <X className="w-4 h-4" />
-          </button>
+          <div className="flex items-center gap-1">
+            <button
+              onClick={onClose}
+              className="text-zinc-400 hover:text-white p-2 -mr-2 rounded-md hover:bg-white/[0.06] transition-colors"
+              aria-label="Close"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          </div>
         </div>
 
         {/* Form */}
