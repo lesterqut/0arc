@@ -13,6 +13,7 @@ import {
   UserAccount,
 } from '../types';
 import { INITIAL_SETTINGS } from '../data/seedData';
+import { exportGalleryImages } from '../components/watchlist/ImageGallery';
 import {
   fetchCloudVault,
   pushCloudVault,
@@ -683,7 +684,7 @@ export const ArchiveProvider: React.FC<{ children: React.ReactNode }> = ({ child
     addToast('Preferences Saved', 'success');
   };
 
-  const exportAllJSON = () => {
+  const exportAllJSON = async () => {
     const snapshot: ArchiveSnapshot = {
       version: '1.0.0',
       exportedAt: new Date().toISOString(),
@@ -691,6 +692,7 @@ export const ArchiveProvider: React.FC<{ children: React.ReactNode }> = ({ child
       notes,
       media,
       settings,
+      gallery: await exportGalleryImages(),
     };
     const blob = new Blob([JSON.stringify(snapshot, null, 2)], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
@@ -703,11 +705,11 @@ export const ArchiveProvider: React.FC<{ children: React.ReactNode }> = ({ child
     addToast('Export Complete', 'success', 'All vault data downloaded.');
   };
 
-  const exportCollectionJSON = (category: ArchiveCategory) => {
+  const exportCollectionJSON = async (category: ArchiveCategory) => {
     let data: unknown = [];
     if (category === 'tools') data = tools;
     if (category === 'notes') data = notes;
-    if (category === 'watchlist') data = media;
+    if (category === 'watchlist') data = { media, gallery: await exportGalleryImages() };
 
     const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
     const url = URL.createObjectURL(blob);

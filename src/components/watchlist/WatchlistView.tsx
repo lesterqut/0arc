@@ -3,6 +3,7 @@ import { useArchive } from '../../context/ArchiveContext';
 import { MediaItem, MediaStatus } from '../../types';
 import { MediaModal } from './MediaModal';
 import { MediaDetailModal } from './MediaDetailModal';
+import { ImageGallery } from './ImageGallery';
 import { ConfirmModal } from '../common/ConfirmModal';
 import { Plus, Search, Star, Film } from 'lucide-react';
 
@@ -250,6 +251,8 @@ export const WatchlistView: React.FC = () => {
           })}
         </div>
       )}
+
+      <ImageGallery />
 
       <MediaDetailModal
         media={selectedMedia}
