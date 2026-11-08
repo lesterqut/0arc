@@ -17,6 +17,8 @@ import {
   registerSseClient,
   connectMongo,
 } from './api/_lib/cloudStore';
+import enrichHandler from './api/ai/enrich';
+import correctHandler from './api/ai/correct';
 
 dotenv.config();
 
@@ -84,6 +86,8 @@ app.post('/api/gemini/media-lookup', async (req, res) => {
   return res.json(await lookupMedia(title.trim(), typeof type === 'string' ? type : 'movie'));
 });
 
+app.post('/api/ai/enrich', (req, res) => enrichHandler(req, res));
+app.post('/api/ai/correct', (req, res) => correctHandler(req, res));
 // -------------------------------------------------------------
 // Cloud Vault & Real-Time Sync APIs
 // -------------------------------------------------------------

@@ -2,7 +2,7 @@ import React, { useState, useMemo } from 'react';
 import { useArchive } from '../../context/ArchiveContext';
 import { NoteItem } from '../../types';
 import { ConfirmModal } from '../common/ConfirmModal';
-import { Plus, Search, Star, Trash2, FileText, ChevronLeft } from 'lucide-react';
+import { Plus, Search, Star, Trash2, FileText, ChevronLeft, Sparkles } from 'lucide-react';
 
 export const NotesView: React.FC = () => {
   const {
@@ -19,6 +19,8 @@ export const NotesView: React.FC = () => {
   const [selectedCategory, setSelectedCategory] = useState<string>('All');
   const [favoritesOnly, setFavoritesOnly] = useState(false);
   const [saveStatus, setSaveStatus] = useState<'saved' | 'saving'>('saved');
+  const [isCorrecting, setIsCorrecting] = useState(false);
+  const [correctionError, setCorrectionError] = useState('');
   const [noteToDelete, setNoteToDelete] = useState<NoteItem | null>(null);
   // Phones show either the list or the editor, never both at once.
   const [mobileEditorOpen, setMobileEditorOpen] = useState(false);
@@ -82,6 +84,30 @@ export const NotesView: React.FC = () => {
   const handleCategoryChange = (cat: string) => {
     if (!activeNote) return;
     updateNote(activeNote.id, { category: cat });
+  };
+
+  const handleCorrectText = async () => {
+    if (!activeNote) return;
+    setIsCorrecting(true);
+    setCorrectionError('');
+    try {
+      const response = await fetch('/api/ai/correct', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ title: activeNote.title, content: activeNote.content, tags: activeNote.tags }),
+      });
+      const payload = await response.json();
+      if (!response.ok || !payload.ok || !payload.data) throw new Error(payload.error || 'Unable to correct text.');
+      updateNote(activeNote.id, {
+        title: payload.data.title || activeNote.title,
+        content: payload.data.content || activeNote.content,
+        tags: Array.isArray(payload.data.tags) ? payload.data.tags : activeNote.tags,
+      });
+    } catch (error) {
+      setCorrectionError(error instanceof Error ? error.message : 'Unable to correct text right now.');
+    } finally {
+      setIsCorrecting(false);
+    }
   };
 
   // Stats
@@ -245,6 +271,15 @@ export const NotesView: React.FC = () => {
                 </div>
 
                 <div className="flex items-center gap-3">
+                  <button
+                    onClick={handleCorrectText}
+                    disabled={isCorrecting}
+                    className="inline-flex items-center gap-1.5 rounded-md border border-violet-400/25 bg-violet-400/10 px-2 py-1 text-[11px] font-medium text-violet-200 transition-colors hover:bg-violet-400/20 disabled:cursor-wait disabled:opacity-60"
+                    title="Fix spelling and capitalization"
+                  >
+                    <Sparkles className="h-3 w-3" />
+                    {isCorrecting ? 'Fixing...' : 'Fix text'}
+                  </button>
                   <span className="font-mono text-[11px] text-zinc-500 hidden sm:inline">
                     {wordCount} words · {readTime} min read
                   </span>
@@ -279,6 +314,11 @@ export const NotesView: React.FC = () => {
 
               {/* Note Paper Canvas */}
               <div className="flex-1 p-4 sm:p-6 md:p-8 flex flex-col overflow-y-auto overscroll-contain">
+                {correctionError && (
+                  <p role="alert" className="mb-3 rounded-lg border border-red-400/20 bg-red-400/10 px-3 py-2 text-[11px] text-red-200">
+                    {correctionError}
+                  </p>
+                )}
                 <input
                   type="text"
                   placeholder="Note Title"
