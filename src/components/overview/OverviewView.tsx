@@ -16,7 +16,6 @@ export const OverviewView: React.FC = () => {
     media,
     setActiveTab,
     addNote,
-    updateMediaProgress,
     toggleMediaFavorite,
   } = useArchive();
 
@@ -186,10 +185,6 @@ export const OverviewView: React.FC = () => {
 
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
             {currentlyConsumingMedia.map((m) => {
-              const progressPercent =
-                m.progressTotal && m.progressCurrent !== undefined
-                  ? Math.min(100, Math.round((m.progressCurrent / m.progressTotal) * 100))
-                  : 0;
 
               return (
                 <div
@@ -238,29 +233,6 @@ export const OverviewView: React.FC = () => {
                       </p>
                     </div>
 
-                    {m.progressTotal && (
-                      <div className="pt-2 border-t border-white/[0.06] flex items-center justify-between gap-2">
-                        <div className="flex-1">
-                          <div className="flex justify-between text-[10px] font-mono text-zinc-400">
-                            <span>
-                              Ep {m.progressCurrent || 0}/{m.progressTotal}
-                            </span>
-                            <span>{progressPercent}%</span>
-                          </div>
-                          <div className="w-full h-1 bg-white/[0.06] rounded-full overflow-hidden mt-1">
-                            <div className="h-full bg-white" style={{ width: `${progressPercent}%` }} />
-                          </div>
-                        </div>
-
-                        <button
-                          onClick={() => updateMediaProgress(m.id, (m.progressCurrent || 0) + 1)}
-                          className="px-2 py-1 rounded bg-white/[0.06] hover:bg-white/[0.12] border border-white/[0.08] text-[10px] font-mono text-zinc-200 hover:text-white transition-colors shrink-0"
-                          aria-label="Advance one episode"
-                        >
-                          +1
-                        </button>
-                      </div>
-                    )}
                   </div>
                 </div>
               );

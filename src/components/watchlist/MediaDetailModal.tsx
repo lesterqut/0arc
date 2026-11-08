@@ -1,6 +1,6 @@
 import React from 'react';
 import { MediaItem, MediaStatus } from '../../types';
-import { X, Star, Film, Edit2, Trash2, Plus, Minus } from 'lucide-react';
+import { X, Star, Film, Edit2, Trash2 } from 'lucide-react';
 
 interface MediaDetailModalProps {
   media: MediaItem | null;
@@ -9,15 +9,12 @@ interface MediaDetailModalProps {
   onDelete: (media: MediaItem) => void;
   onToggleFavorite: (id: string) => void;
   onUpdateStatus: (id: string, status: MediaStatus) => void;
-  onUpdateProgress: (id: string, current: number) => void;
 }
 
 const STATUS_OPTIONS: { value: MediaStatus; label: string }[] = [
   { value: 'want_to_watch', label: 'Watchlist' },
   { value: 'watching', label: 'Watching' },
   { value: 'completed', label: 'Completed' },
-  { value: 'on_hold', label: 'On Hold' },
-  { value: 'dropped', label: 'Dropped' },
 ];
 
 const TYPE_LABELS: Record<MediaItem['type'], string> = {
@@ -33,14 +30,8 @@ export const MediaDetailModal: React.FC<MediaDetailModalProps> = ({
   onDelete,
   onToggleFavorite,
   onUpdateStatus,
-  onUpdateProgress,
 }) => {
   if (!media) return null;
-
-  const progressPercent =
-    media.progressTotal && media.progressCurrent !== undefined
-      ? Math.min(100, Math.round((media.progressCurrent / media.progressTotal) * 100))
-      : 0;
 
   return (
     <div
@@ -137,43 +128,6 @@ export const MediaDetailModal: React.FC<MediaDetailModalProps> = ({
                 ))}
               </select>
             </div>
-
-            {/* Episode progress */}
-            {media.progressTotal ? (
-              <div className="p-3.5 rounded-lg bg-white/[0.02] border border-white/[0.06] space-y-2">
-                <div className="flex items-center justify-between text-xs font-mono">
-                  <span className="text-zinc-400">Episode progress</span>
-                  <div className="flex items-center gap-2">
-                    <button
-                      onClick={() =>
-                        onUpdateProgress(media.id, Math.max(0, (media.progressCurrent || 0) - 1))
-                      }
-                      className="p-1.5 rounded-md bg-white/[0.04] hover:bg-white/[0.08] text-zinc-400 hover:text-white transition-colors"
-                      aria-label="Decrease episode progress"
-                    >
-                      <Minus className="w-3.5 h-3.5" />
-                    </button>
-                    <span className="font-mono font-medium text-white px-1 tabular-nums">
-                      {media.progressCurrent || 0} / {media.progressTotal}
-                    </span>
-                    <button
-                      onClick={() => onUpdateProgress(media.id, (media.progressCurrent || 0) + 1)}
-                      className="p-1.5 rounded-md bg-white/[0.04] hover:bg-white/[0.08] text-zinc-400 hover:text-white transition-colors"
-                      aria-label="Increase episode progress"
-                    >
-                      <Plus className="w-3.5 h-3.5" />
-                    </button>
-                  </div>
-                </div>
-
-                <div className="w-full h-1 bg-white/[0.06] rounded-full overflow-hidden">
-                  <div
-                    className="h-full bg-zinc-300 transition-all"
-                    style={{ width: `${progressPercent}%` }}
-                  />
-                </div>
-              </div>
-            ) : null}
 
             <div>
               <h4 className="text-[11px] font-mono text-zinc-500 uppercase tracking-wider mb-1">

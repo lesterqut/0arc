@@ -6,12 +6,10 @@ import { MediaDetailModal } from './MediaDetailModal';
 import { ConfirmModal } from '../common/ConfirmModal';
 import { Plus, Search, Star, Film } from 'lucide-react';
 
-const STATUS_LABELS: Record<MediaStatus, string> = {
+const STATUS_LABELS: Partial<Record<MediaStatus, string>> = {
   want_to_watch: 'Watchlist',
   watching: 'Watching',
   completed: 'Completed',
-  on_hold: 'On Hold',
-  dropped: 'Dropped',
 };
 
 const TYPE_LABELS: Record<MediaItem['type'], string> = {
@@ -25,7 +23,6 @@ export const WatchlistView: React.FC = () => {
     media,
     updateMedia,
     deleteMedia,
-    updateMediaProgress,
     toggleMediaFavorite,
     openQuickAdd,
     settings,
@@ -33,6 +30,7 @@ export const WatchlistView: React.FC = () => {
 
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<'all' | MediaStatus>('all');
+  const [typeFilter, setTypeFilter] = useState<'all' | MediaItem['type']>('all');
   const [sortBy, setSortBy] = useState<'recent' | 'rating' | 'year' | 'alpha'>('recent');
   const [favoritesOnly, setFavoritesOnly] = useState(false);
 
@@ -52,17 +50,12 @@ export const WatchlistView: React.FC = () => {
           item.description.toLowerCase().includes(query);
 
         const matchesStatus = statusFilter === 'all' || item.status === statusFilter;
+        const matchesType = typeFilter === 'all' || item.type === typeFilter;
         const matchesFavorite = !favoritesOnly || item.isFavorite;
 
-        return matchesQuery && matchesStatus && matchesFavorite;
-      })
-      .sort((a, b) => {
-        if (sortBy === 'rating') return b.rating - a.rating;
-        if (sortBy === 'year') return b.releaseYear - a.releaseYear;
-        if (sortBy === 'alpha') return a.title.localeCompare(b.title);
-        return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+        return matchesQuery && matchesStatus && matchesType && matchesFavorite;
       });
-  }, [media, searchQuery, statusFilter, sortBy, favoritesOnly]);
+  }, [media, searchQuery, statusFilter, typeFilter, sortBy, favoritesOnly]);
 
   const handleSaveMedia = (mediaData: Omit<MediaItem, 'id' | 'createdAt' | 'updatedAt'>) => {
     if (!editingMedia) return;
@@ -130,6 +123,18 @@ export const WatchlistView: React.FC = () => {
           </select>
 
           <select
+            value={typeFilter}
+            onChange={(e) => setTypeFilter(e.target.value as 'all' | MediaItem['type'])}
+            className={selectClass}
+            aria-label="Filter by media type"
+          >
+            <option value="all">All types</option>
+            <option value="movie">Movies</option>
+            <option value="series">Series</option>
+            <option value="anime">Anime</option>
+          </select>
+
+          <select
             value={sortBy}
             onChange={(e) => setSortBy(e.target.value as 'recent' | 'rating' | 'year' | 'alpha')}
             className={selectClass}
@@ -172,11 +177,6 @@ export const WatchlistView: React.FC = () => {
       ) : (
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
           {filteredMedia.map((item) => {
-            const progressPercent =
-              item.progressTotal && item.progressCurrent !== undefined
-                ? Math.min(100, Math.round((item.progressCurrent / item.progressTotal) * 100))
-                : 0;
-
             return (
               <div
                 key={item.id}
@@ -231,7 +231,7 @@ export const WatchlistView: React.FC = () => {
 
                   <div className="absolute bottom-2 left-2 right-2 flex items-center justify-between gap-2 text-[10px] font-mono">
                     <span className="text-zinc-300 truncate font-medium">
-                      {STATUS_LABELS[item.status]}
+                      {STATUS_LABELS[item.status] || 'Watchlist'}
                     </span>
                     <span className="text-zinc-500 shrink-0">{item.releaseYear}</span>
                   </div>
@@ -244,32 +244,6 @@ export const WatchlistView: React.FC = () => {
                     {item.genre ? ` · ${item.genre}` : ''}
                   </p>
 
-                  {item.progressTotal ? (
-                    <div className="mt-2 pt-2 border-t border-white/[0.06] flex items-center justify-between gap-2">
-                      <div className="flex-1 min-w-0">
-                        <p className="text-[10px] font-mono text-zinc-400">
-                          Ep {item.progressCurrent || 0}/{item.progressTotal}
-                        </p>
-                        <div className="w-full h-1 bg-white/[0.06] rounded-full overflow-hidden mt-1">
-                          <div
-                            className="h-full bg-zinc-300"
-                            style={{ width: `${progressPercent}%` }}
-                          />
-                        </div>
-                      </div>
-
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          updateMediaProgress(item.id, (item.progressCurrent || 0) + 1);
-                        }}
-                        className="px-2 py-1 rounded bg-white/[0.06] hover:bg-white/[0.12] border border-white/[0.08] text-[10px] font-mono text-zinc-300 hover:text-white transition-colors shrink-0"
-                        aria-label="Advance one episode"
-                      >
-                        +1
-                      </button>
-                    </div>
-                  ) : null}
                 </div>
               </div>
             );
@@ -296,12 +270,6 @@ export const WatchlistView: React.FC = () => {
         onUpdateStatus={(id, status) => {
           updateMedia(id, { status });
           setSelectedMedia((current) => (current ? { ...current, status } : current));
-        }}
-        onUpdateProgress={(id, current) => {
-          updateMediaProgress(id, current);
-          setSelectedMedia((selected) =>
-            selected ? { ...selected, progressCurrent: current } : selected
-          );
         }}
       />
 
