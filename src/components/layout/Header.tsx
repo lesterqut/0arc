@@ -18,6 +18,7 @@ export const Header: React.FC = () => {
     tools: { title: 'Tools & Resources', count: tools.length },
     notes: { title: 'Notes', count: notes.length },
     watchlist: { title: 'Watchlist', count: media.length },
+    images: { title: 'Images' },
     settings: { title: 'Settings' },
   };
 

@@ -1,13 +1,14 @@
 import React from 'react';
 import { useArchive } from '../../context/ArchiveContext';
 import { NavigationTab } from '../../types';
-import { LayoutDashboard, Wrench, FileText, Film, Star, Settings } from 'lucide-react';
+import { LayoutDashboard, Wrench, FileText, Film, Image as ImageIcon, Star, Settings } from 'lucide-react';
 
 const NAV_ITEMS: { id: NavigationTab; label: string; icon: React.ReactNode }[] = [
   { id: 'overview', label: 'Home', icon: <LayoutDashboard className="w-[18px] h-[18px]" /> },
   { id: 'tools', label: 'Tools', icon: <Wrench className="w-[18px] h-[18px]" /> },
   { id: 'notes', label: 'Notes', icon: <FileText className="w-[18px] h-[18px]" /> },
   { id: 'watchlist', label: 'Watchlist', icon: <Film className="w-[18px] h-[18px]" /> },
+  { id: 'images', label: 'Images', icon: <ImageIcon className="w-[18px] h-[18px]" /> },
   { id: 'favorites', label: 'Saved', icon: <Star className="w-[18px] h-[18px]" /> },
   { id: 'settings', label: 'Settings', icon: <Settings className="w-[18px] h-[18px]" /> },
 ];

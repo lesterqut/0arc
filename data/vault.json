@@ -1,6 +1,34 @@
 {
   "tools": [
     {
+      "title": "VOID TOOLS",
+      "description": "FIND ANY FILE IN YOUR COMPUTER EASILY",
+      "url": "https://www.voidtools.com/",
+      "category": "Development",
+      "tags": [
+        "search",
+        "app"
+      ],
+      "isFavorite": false,
+      "id": "a80e1b8c-d37a-4f52-b62f-7f571684d23a",
+      "createdAt": "2026-11-08T16:41:50.897Z",
+      "updatedAt": "2026-11-08T16:41:50.897Z"
+    },
+    {
+      "title": "RUFLO AI",
+      "description": "AN AI AGENTS TEAM TO DO WHATEVER YOU WANT",
+      "url": "https://github.com/ruvnet/ruflo",
+      "category": "AI Tools",
+      "tags": [
+        "ai",
+        "opensouce"
+      ],
+      "isFavorite": false,
+      "id": "130fda89-90eb-4b03-a969-a8fbf6772671",
+      "createdAt": "2026-11-08T16:38:00.745Z",
+      "updatedAt": "2026-11-08T16:38:00.745Z"
+    },
+    {
       "title": "MANUS",
       "description": "WEBSITE AI CODING AGENT FOR WEBSITE DEVELOPING",
       "url": "https://manus.im/",
@@ -188,6 +216,102 @@
   ],
   "media": [
     {
+      "id": "ca778c14-6218-4668-b449-cfc1099d4bc1",
+      "title": "The Week Of",
+      "type": "movie",
+      "posterUrl": "https://m.media-amazon.com/images/M/MV5BMjUwMjczMzY5OV5BMl5BanBnXkFtZTgwMjgyMTczNTM@._V1_.jpg",
+      "description": "An acclaimed movie saved to your watchlist.",
+      "genre": "Drama",
+      "releaseYear": 2018,
+      "rating": 8.5,
+      "status": "want_to_watch",
+      "progressCurrent": 0,
+      "progressTotal": 0,
+      "isFavorite": false,
+      "createdAt": "2026-11-08T16:31:46.651Z",
+      "updatedAt": "2026-11-08T16:31:46.651Z"
+    },
+    {
+      "id": "2b15685b-72ab-4203-9a3a-8b3b6d3c96d6",
+      "title": "The Hangover",
+      "type": "movie",
+      "posterUrl": "https://m.media-amazon.com/images/M/MV5BNDI2MzBhNzgtOWYyOS00NDM2LWE0OGYtOGQ0M2FjMTI2NTllXkEyXkFqcGc@._V1_.jpg",
+      "description": "The Hangover is a 2009 American comedy film directed by Todd Phillips, and written by Jon Lucas and Scott Moore. It is the first installment in The Hangover trilogy. The film stars Bradley Cooper, Ed Helms, Zach Galifianakis, Heather Graham, Justin Bartha, and Jeffrey Tambor. It tells the story of Phil Wenneck (Cooper), Stu Price (Helms), Alan Garner (Galifianakis), and Doug Billings (Bartha), who travel to Las Vegas for a bachelor party to celebrate the Doug's upcoming marriage. However, Phil, Stu, and Alan wake up with Doug missing and no memory of the previous night, and must piece together what happened so they can get Doug home in time for the wedding.",
+      "genre": "Drama",
+      "releaseYear": 2009,
+      "rating": 8.5,
+      "status": "want_to_watch",
+      "progressCurrent": 0,
+      "progressTotal": 0,
+      "isFavorite": false,
+      "createdAt": "2026-11-08T16:31:46.650Z",
+      "updatedAt": "2026-11-08T16:31:46.650Z"
+    },
+    {
+      "id": "3ad7134e-081f-4678-b41e-7cdcc1bbd202",
+      "title": "Samurai Champloo",
+      "type": "anime",
+      "posterUrl": "https://m.media-amazon.com/images/M/MV5BMjBhZTY4NzMtOGU3OC00ZDllLWE2ZjUtMGFjYTU5OWI0YTQ2XkEyXkFqcGc@._V1_.jpg",
+      "description": "Samurai Champloo  is a Japanese anime television series. The debut television production of studio Manglobe, the 26-episode series aired from May 2004 to March 2005. It was first partially broadcast on Fuji TV, then had a complete airing on Fuji Network System. It was licensed for North American broadcast on Adult Swim, and for commercial release first by Geneon Entertainment and later by Crunchyroll. It was also licensed for English releases in the United Kingdom by MVM Films, and in Australia and New Zealand by Madman Entertainment. A manga adaptation was serialized in Monthly Shōnen Ace during 2004, later released in North America by Tokyopop the following year.",
+      "genre": "Drama",
+      "releaseYear": 2004,
+      "rating": 8.5,
+      "status": "want_to_watch",
+      "progressCurrent": 0,
+      "progressTotal": 0,
+      "isFavorite": false,
+      "createdAt": "2026-11-08T16:20:26.098Z",
+      "updatedAt": "2026-11-08T16:20:34.485Z"
+    },
+    {
+      "id": "63de847c-e530-47be-9cea-b67336ccdffa",
+      "title": "Steins; Gate",
+      "type": "anime",
+      "posterUrl": "https://m.media-amazon.com/images/M/MV5BZjI1YjZiMDUtZTI3MC00YTA5LWIzMmMtZmQ0NTZiYWM4NTYwXkEyXkFqcGc@._V1_.jpg",
+      "description": "An acclaimed series saved to your watchlist.",
+      "genre": "Drama",
+      "releaseYear": 2011,
+      "rating": 8.5,
+      "status": "want_to_watch",
+      "progressCurrent": 0,
+      "progressTotal": 0,
+      "isFavorite": false,
+      "createdAt": "2026-11-08T16:19:29.842Z",
+      "updatedAt": "2026-11-08T16:20:30.047Z"
+    },
+    {
+      "id": "6e0d6af8-b302-44fd-936c-44fa4a60984f",
+      "title": "We're the Millers",
+      "type": "movie",
+      "posterUrl": "https://m.media-amazon.com/images/M/MV5BNDQ0NWI1ZGEtY2NlMy00MWYyLTk4NGEtMTY5MmQ4YTcyY2E0XkEyXkFqcGc@._V1_.jpg",
+      "description": "We're the Millers is a 2013 American comedy road film directed by Rawson Marshall Thurber and starring Jennifer Aniston, Jason Sudeikis, Emma Roberts, Will Poulter, Nick Offerman, Kathryn Hahn, Molly Quinn, and Ed Helms. The film's screenplay was written by Bob Fisher, Steve Faber, Sean Anders, and John Morris, based on a story by Fisher and Faber. The plot follows a small-time pot dealer (Sudeikis) who convinces his neighbors to help him by pretending to be his family in order to smuggle drugs from Mexico into the United States.",
+      "genre": "Drama",
+      "releaseYear": 2013,
+      "rating": 8.5,
+      "status": "want_to_watch",
+      "progressCurrent": 0,
+      "progressTotal": 0,
+      "isFavorite": false,
+      "createdAt": "2026-11-08T16:09:33.942Z",
+      "updatedAt": "2026-11-08T16:09:33.942Z"
+    },
+    {
+      "id": "3864e08e-aba4-4484-82d1-db6cd581014d",
+      "title": "The Wrong Missy",
+      "type": "movie",
+      "posterUrl": "https://m.media-amazon.com/images/M/MV5BYzlhOGQ0YzEtNTgzOS00NGZjLWFkMmEtOGU1MWU0ZWEzOTZhXkEyXkFqcGc@._V1_.jpg",
+      "description": "The Wrong Missy is a 2020 American romantic comedy film directed by Tyler Spindel which was produced by Happy Madison Productions. With a screenplay by Chris Pappas and Kevin Barnett, the film stars David Spade as a recently single businessman who accidentally invites a woman with whom he had a horrible first date to a corporate retreat after a case of mistaken identity.",
+      "genre": "Drama",
+      "releaseYear": 2020,
+      "rating": 8.5,
+      "status": "want_to_watch",
+      "progressCurrent": 0,
+      "progressTotal": 0,
+      "isFavorite": false,
+      "createdAt": "2026-11-08T16:09:33.942Z",
+      "updatedAt": "2026-11-08T16:09:33.942Z"
+    },
+    {
       "id": "98a810ca-8959-4d9d-826c-caa19f0e4b94",
       "title": "12 Angry Men",
       "type": "movie",
@@ -282,22 +406,6 @@
       "isFavorite": false,
       "createdAt": "2026-11-08T15:55:16.516Z",
       "updatedAt": "2026-11-08T15:55:16.516Z"
-    },
-    {
-      "id": "f3e2cadd-7903-467e-9f2e-ab744155fa5d",
-      "title": "Pulp Fiction",
-      "type": "movie",
-      "posterUrl": "https://m.media-amazon.com/images/M/MV5BYTViYTE3ZGQtNDBlMC00ZTAyLTkyODMtZGRiZDg0MjA2YThkXkEyXkFqcGc@._V1_.jpg",
-      "description": "Pulp Fiction is a 1994 American crime film written and directed by Quentin Tarantino from a story he conceived with Roger Avary. It tells four intertwining tales of crime and violence in Los Angeles. The film stars John Travolta, Samuel L. Jackson, Bruce Willis, Tim Roth, Ving Rhames, and Uma Thurman. The title refers to the pulp magazines and hardboiled crime novels popular during the mid-twentieth century, known for their graphic violence and punchy dialogue.",
-      "genre": "Drama",
-      "releaseYear": 1994,
-      "rating": 8.5,
-      "status": "want_to_watch",
-      "progressCurrent": 0,
-      "progressTotal": 0,
-      "isFavorite": false,
-      "createdAt": "2026-11-08T15:38:45.355Z",
-      "updatedAt": "2026-11-08T15:38:45.355Z"
     },
     {
       "id": "6cf339f0-03cf-4199-bdb3-1f5a9e0b084b",
@@ -1040,6 +1148,6 @@
     "confirmBeforeDelete": true,
     "defaultArchiveView": "overview"
   },
-  "version": 338,
-  "updatedAt": "2026-11-08T16:01:51.665Z"
+  "version": 347,
+  "updatedAt": "2026-11-08T16:41:52.267Z"
 }

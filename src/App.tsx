@@ -15,6 +15,7 @@ import { OverviewView } from './components/overview/OverviewView';
 import { ToolsView } from './components/tools/ToolsView';
 import { NotesView } from './components/notes/NotesView';
 import { WatchlistView } from './components/watchlist/WatchlistView';
+import { ImagesView } from './components/images/ImagesView';
 import { FavoritesView } from './components/unified/FavoritesView';
 import { SettingsView } from './components/settings/SettingsView';
 
@@ -33,6 +34,8 @@ const MainContent: React.FC = () => {
         return <NotesView />;
       case 'watchlist':
         return <WatchlistView />;
+      case 'images':
+        return <ImagesView />;
       case 'settings':
         return <SettingsView />;
       default:

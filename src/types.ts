@@ -67,6 +67,7 @@ export type NavigationTab =
   | 'tools'
   | 'notes'
   | 'watchlist'
+  | 'images'
   | 'favorites'
   | 'settings';
 

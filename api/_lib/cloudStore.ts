@@ -129,8 +129,8 @@ export async function connectMongo(uri: string): Promise<{ ok: boolean; message?
     }
 
     const client = new MongoClient(cleanUri, {
-      connectTimeoutMS: 8000,
-      serverSelectionTimeoutMS: 8000,
+      connectTimeoutMS: 2000,
+      serverSelectionTimeoutMS: 2000,
     });
 
     await client.connect();

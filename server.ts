@@ -9,14 +9,14 @@
 import express from 'express';
 import { createServer as createViteServer } from 'vite';
 import dotenv from 'dotenv';
-import { lookupMedia, resolveMediaDetails, searchImdb, type MediaKind } from './api/_lib/media';
+import { lookupMedia, resolveMediaDetails, searchImdb, type MediaKind } from './api/_lib/media.ts';
 import {
   initCloudStore,
   getVaultData,
   saveVaultData,
   registerSseClient,
   connectMongo,
-} from './api/_lib/cloudStore';
+} from './api/_lib/cloudStore.ts';
 
 dotenv.config();
 

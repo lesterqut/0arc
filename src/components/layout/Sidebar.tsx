@@ -6,6 +6,7 @@ import {
   Wrench,
   FileText,
   Film,
+  Image as ImageIcon,
   Star,
   Settings,
 } from 'lucide-react';
@@ -18,6 +19,7 @@ export const Sidebar: React.FC = () => {
     { id: 'tools', label: 'Tools', icon: <Wrench className="w-4 h-4" /> },
     { id: 'notes', label: 'Notes', icon: <FileText className="w-4 h-4" /> },
     { id: 'watchlist', label: 'Watchlist', icon: <Film className="w-4 h-4" /> },
+    { id: 'images', label: 'Images', icon: <ImageIcon className="w-4 h-4" /> },
     { id: 'favorites', label: 'Favorites', icon: <Star className="w-4 h-4" /> },
     { id: 'settings', label: 'Settings', icon: <Settings className="w-4 h-4" /> },
   ];

@@ -709,7 +709,7 @@ export const ArchiveProvider: React.FC<{ children: React.ReactNode }> = ({ child
     let data: unknown = [];
     if (category === 'tools') data = tools;
     if (category === 'notes') data = notes;
-    if (category === 'watchlist') data = { media, gallery: await exportGalleryImages() };
+    if (category === 'watchlist') data = media;
 
     const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
