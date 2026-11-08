@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { useArchive } from '../../context/ArchiveContext';
-import { X, Wrench, FileText, Film, Loader2, Check, Search, Sparkles } from 'lucide-react';
+import { X, Wrench, FileText, Film, Loader2, Check, Search } from 'lucide-react';
 import { ToolCategory, MediaType, MediaStatus } from '../../types';
 import { lookupMediaDetails, searchMedia, type MediaCandidate } from '../../lib/mediaLookup';
 
@@ -55,10 +55,6 @@ export const QuickAddModal: React.FC = () => {
   const [isSearchingImdb, setIsSearchingImdb] = useState(false);
   const [showCandidates, setShowCandidates] = useState(false);
   const [mediaPreview, setMediaPreview] = useState<MediaPreview | null>(null);
-  const [isFindingTool, setIsFindingTool] = useState(false);
-  const [toolAiFilled, setToolAiFilled] = useState(false);
-  const [toolAiError, setToolAiError] = useState('');
-  const originalToolFields = useRef({ title: '', description: '', url: '', category: 'Productivity' as ToolCategory, tags: '' });
   const searchTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const resetForm = () => {
@@ -76,9 +72,6 @@ export const QuickAddModal: React.FC = () => {
     setMediaLoading(false);
     setImdbCandidates([]);
     setShowCandidates(false);
-    setIsFindingTool(false);
-    setToolAiFilled(false);
-    setToolAiError('');
   };
 
   // Start every "New Entry" from a clean form, pre-selecting the requested section.
@@ -156,55 +149,6 @@ export const QuickAddModal: React.FC = () => {
     });
     if (details) setMediaPreview({ ...details, posterUrl: details.posterUrl || candidate.posterUrl });
     setMediaLoading(false);
-  };
-
-  const handleFindTool = async () => {
-    if (toolAiFilled) {
-      setToolTitle(originalToolFields.current.title);
-      setToolDesc(originalToolFields.current.description);
-      setToolUrl(originalToolFields.current.url);
-      setToolCategory(originalToolFields.current.category);
-      setToolTags(originalToolFields.current.tags);
-      setToolAiFilled(false);
-      setToolAiError('');
-      return;
-    }
-
-    if (!toolTitle.trim()) {
-      setToolAiError('Enter a tool name before finding details.');
-      return;
-    }
-
-    originalToolFields.current = { title: toolTitle, description: toolDesc, url: toolUrl, category: toolCategory, tags: toolTags };
-    setIsFindingTool(true);
-    setToolAiError('');
-    try {
-      const response = await fetch('/api/ai/enrich', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          kind: 'tool',
-          title: toolTitle,
-          description: toolDesc,
-          url: toolUrl,
-          category: toolCategory,
-          tags: toolTags.split(',').map((tag) => tag.trim()).filter(Boolean),
-        }),
-      });
-      const payload = await response.json();
-      if (!response.ok || !payload.ok || !payload.data) throw new Error(payload.error || 'Unable to find details.');
-      const data = payload.data;
-      setToolTitle(toolTitle.trim() || data.title || '');
-      setToolDesc(toolDesc.trim() || data.description || '');
-      setToolUrl(toolUrl.trim() || data.url || '');
-      setToolCategory(data.category || toolCategory);
-      setToolTags(toolTags.trim() || (data.tags || []).join(', '));
-      setToolAiFilled(true);
-    } catch (error) {
-      setToolAiError(error instanceof Error ? error.message : 'Unable to find details right now.');
-    } finally {
-      setIsFindingTool(false);
-    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -321,18 +265,7 @@ export const QuickAddModal: React.FC = () => {
             {selectedType === 'tool' && (
               <>
                 <div>
-                  <div className="mb-1.5 flex items-center justify-between gap-2">
-                    <label className="block text-[11px] font-mono text-zinc-400">Name</label>
-                    <button
-                      type="button"
-                      onClick={handleFindTool}
-                      disabled={isFindingTool}
-                      className="flex items-center gap-1.5 rounded-md border border-violet-400/25 bg-violet-400/10 px-2 py-1 text-[10px] font-medium text-violet-200 transition-colors hover:bg-violet-400/20 disabled:cursor-wait disabled:opacity-60"
-                    >
-                      <Sparkles className="h-3 w-3" />
-                      {isFindingTool ? 'Finding...' : toolAiFilled ? 'Clear found' : 'Find details'}
-                    </button>
-                  </div>
+                  <label className="block text-[11px] font-mono text-zinc-400 mb-1.5">Name</label>
                   <input
                     type="text"
                     required
@@ -343,12 +276,6 @@ export const QuickAddModal: React.FC = () => {
                     className={inputClass}
                   />
                 </div>
-
-                {toolAiError && (
-                  <p role="alert" className="rounded-lg border border-red-400/20 bg-red-400/10 px-3 py-2 text-[11px] text-red-200">
-                    {toolAiError}
-                  </p>
-                )}
 
                 <div>
                   <label className="block text-[11px] font-mono text-zinc-400 mb-1.5">
