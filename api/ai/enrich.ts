@@ -31,6 +31,32 @@ function cleanPageText(html: string) {
     .slice(0, 12000);
 }
 
+async function searchWeb(title: string, query: string) {
+  const wikiResponse = await fetch(`https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(title)}`, {
+    headers: { 'User-Agent': '0arc enrichment bot' },
+    signal: AbortSignal.timeout(5000),
+  }).catch(() => null);
+  if (wikiResponse?.ok) {
+    const wiki = await wikiResponse.json() as { extract?: string; content_urls?: { desktop?: { page?: string } } };
+    if (wiki.extract) {
+      return {
+        firstUrl: wiki.content_urls?.desktop?.page ?? '',
+        text: wiki.extract.slice(0, 12000),
+      };
+    }
+  }
+
+  const response = await fetch(`https://html.duckduckgo.com/html/?q=${encodeURIComponent(query)}`, {
+    headers: { 'User-Agent': 'Mozilla/5.0 (compatible; 0arc/1.0)' },
+    signal: AbortSignal.timeout(5000),
+  });
+  if (!response.ok) return { text: '', firstUrl: '' };
+
+  const html = await response.text();
+  const text = cleanPageText(html);
+  return { firstUrl: '', text: text.slice(0, 12000) };
+}
+
 export default async function handler(req: any, res: any) {
   if (req.method !== 'POST') {
     res.status(405).json({ ok: false, error: 'Method not allowed' });
@@ -39,6 +65,8 @@ export default async function handler(req: any, res: any) {
 
   const input = req.body as EnrichmentRequest;
   let pageContext = '';
+  let searchContext = '';
+  let searchUrl = '';
 
   try {
     if (!input || !['tool', 'media'].includes(input.kind) || !input.title?.trim()) {
@@ -57,6 +85,13 @@ export default async function handler(req: any, res: any) {
       }
     }
 
+    const webSearch = await searchWeb(
+      input.title.trim(),
+      `${input.title} ${input.kind === 'tool' ? 'official website features pricing' : input.mediaType ?? 'movie series rating IMDb'}`,
+    );
+    searchContext = webSearch.text;
+    searchUrl = webSearch.firstUrl;
+
     const { output } = await generateText({
       model: 'google/gemini-2.5-flash-lite',
       output: Output.object({ schema: enrichmentSchema }),
@@ -65,6 +100,7 @@ export default async function handler(req: any, res: any) {
         kind: input.kind,
         userFields: input,
         webpageText: pageContext,
+        webSearchResults: searchContext,
       }),
     });
 
@@ -78,14 +114,15 @@ export default async function handler(req: any, res: any) {
       ? (input.category as z.infer<typeof enrichmentSchema>['category'])
       : 'Other';
     const fallbackDescription = input.description?.trim() ||
-      (pageContext ? pageContext.slice(0, 240).trim() : '');
+      (pageContext ? pageContext.slice(0, 240).trim() : '') ||
+      (searchContext ? searchContext.split('\n')[0].slice(0, 240).trim() : '');
 
     res.status(200).json({
       ok: true,
       data: {
         title: (input.title ?? '').trim(),
         description: fallbackDescription,
-        url: input.url?.trim() || null,
+        url: input.url?.trim() || searchUrl || null,
         category,
         tags: input.tags ?? [],
         rating: null,
