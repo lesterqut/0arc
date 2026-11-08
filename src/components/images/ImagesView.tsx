@@ -19,6 +19,8 @@ export type GalleryImage = {
   name: string;
   type: string;
   size: number;
+  /** Byte size before upload compression, when the image was re-encoded. */
+  originalSize?: number;
   createdAt: number;
   blob: Blob;
   url: string;
@@ -94,6 +96,51 @@ const blobToDataUrl = (blob: Blob) =>
     reader.onerror = () => reject(reader.error);
     reader.readAsDataURL(blob);
   });
+
+/** Formats worth re-encoding; SVG/GIF (vector/animation) and already-optimised
+ *  WebP/AVIF/HEIC uploads keep their original bytes. */
+const RECOMPRESSIBLE_TYPES = new Set(['image/jpeg', 'image/png', 'image/bmp']);
+
+/** High enough that the WebP copy is visually indistinguishable from the source. */
+const WEBP_QUALITY = 0.95;
+
+/**
+ * Shrink an upload without dropping resolution or visible detail.
+ * The re-encoded copy is only kept when it is meaningfully smaller than the
+ * original file, so quality can never get worse for no gain.
+ */
+const compressImage = async (file: File): Promise<File> => {
+  if (!RECOMPRESSIBLE_TYPES.has(file.type) || file.size < 20 * 1024) return file;
+  if (typeof createImageBitmap !== 'function') return file;
+
+  try {
+    const bitmap = await createImageBitmap(file, { imageOrientation: 'from-image' });
+    const canvas = document.createElement('canvas');
+    canvas.width = bitmap.width;
+    canvas.height = bitmap.height;
+
+    const context = canvas.getContext('2d');
+    if (!context) {
+      bitmap.close();
+      return file;
+    }
+
+    context.drawImage(bitmap, 0, 0);
+    bitmap.close();
+
+    const blob = await new Promise<Blob | null>((resolve) =>
+      canvas.toBlob(resolve, 'image/webp', WEBP_QUALITY)
+    );
+
+    if (!blob || blob.size === 0 || blob.size > file.size * 0.95) return file;
+
+    const name = file.name.replace(/\.(png|jpe?g|bmp)$/i, '') + '.webp';
+    return new File([blob], name, { type: 'image/webp', lastModified: file.lastModified });
+  } catch {
+    // Formats the browser can't decode (HEIC, TIFF, huge canvases) stay untouched.
+    return file;
+  }
+};
 
 const compressForExport = async (blob: Blob) => {
   if (blob.type === 'image/svg+xml' || blob.type === 'image/gif') return blobToDataUrl(blob);
@@ -195,22 +242,47 @@ export const ImagesView: React.FC = () => {
 
     setError('');
     try {
-      await writeImages(
-        validFiles.map((file) => ({
-          id: createId(),
-          name: file.name,
-          type: file.type || 'image/*',
-          size: file.size,
-          createdAt: Date.now(),
-          blob: file,
-        }))
+      // Compress on upload, keeping the original whenever no bytes are saved.
+      const prepared = await Promise.all(
+        validFiles.map(async (file) => {
+          const optimized = await compressImage(file);
+          return {
+            id: createId(),
+            name: optimized.name,
+            type: optimized.type || file.type || 'image/*',
+            size: optimized.size,
+            originalSize: optimized !== file ? file.size : undefined,
+            createdAt: Date.now(),
+            blob: optimized,
+          };
+        })
       );
+
+      await writeImages(prepared);
       await refreshImages();
-      addToast(
-        validFiles.length === 1 ? 'Image Saved' : `${validFiles.length} Images Saved`,
-        'success',
-        validFiles.length === 1 ? validFiles[0].name : 'Added to image archive'
-      );
+
+      const bytesBefore = validFiles.reduce((sum, file) => sum + file.size, 0);
+      const bytesAfter = prepared.reduce((sum, image) => sum + image.size, 0);
+      const savedPercent =
+        bytesBefore > 0 ? Math.round(((bytesBefore - bytesAfter) / bytesBefore) * 100) : 0;
+
+      if (prepared.length === 1) {
+        addToast(
+          'Image Saved',
+          'success',
+          savedPercent > 0
+            ? `${prepared[0].name} · ${formatSize(bytesBefore)} → ${formatSize(bytesAfter)} (${savedPercent}% smaller)`
+            : prepared[0].name
+        );
+      } else {
+        addToast(
+          `${prepared.length} Images Saved`,
+          'success',
+          savedPercent > 0
+            ? `${savedPercent}% smaller · ${formatSize(bytesBefore - bytesAfter)} saved`
+            : 'Added to image archive'
+        );
+      }
     } catch {
       setError('Could not save images. Please check your storage settings.');
       addToast('Upload Failed', 'error', 'Failed to store image in gallery.');
@@ -518,6 +590,12 @@ export const ImagesView: React.FC = () => {
                   <span className="flex items-center gap-1">
                     <HardDrive className="w-3 h-3 text-zinc-500" />
                     {formatSize(selectedImage.size)}
+                    {selectedImage.originalSize && selectedImage.originalSize > selectedImage.size && (
+                      <span className="text-emerald-400">
+                        · compressed{' '}
+                        {Math.round((1 - selectedImage.size / selectedImage.originalSize) * 100)}%
+                      </span>
+                    )}
                   </span>
                   <span className="flex items-center gap-1">
                     <Calendar className="w-3 h-3 text-zinc-500" />

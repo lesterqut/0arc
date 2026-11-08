@@ -16,6 +16,7 @@ import {
   saveVaultData,
   registerSseClient,
   connectMongo,
+  getStorageUsage,
 } from './api/_lib/cloudStore.ts';
 
 dotenv.config();
@@ -172,6 +173,19 @@ app.get('/api/cloud/mongo-status', async (_req, res) => {
     });
   } catch (err) {
     return res.status(500).json({ ok: false, error: 'Failed to inspect database status' });
+  }
+});
+
+/**
+ * Calculate storage used against the MongoDB Atlas free plan allowance.
+ */
+app.get('/api/cloud/storage-usage', async (_req, res) => {
+  try {
+    const usage = await getStorageUsage();
+    return res.json({ ok: true, ...usage });
+  } catch (err) {
+    console.error('[API] /api/cloud/storage-usage error:', err);
+    return res.status(500).json({ ok: false, error: 'Failed to calculate storage usage' });
   }
 });
 

@@ -14,6 +14,7 @@ import {
 } from '../types';
 import { INITIAL_SETTINGS } from '../data/seedData';
 import { exportGalleryImages } from '../components/watchlist/ImageGallery';
+import { normalizePath, pathForTab, tabFromPath, TAB_TITLES } from '../utils/appRoutes';
 import {
   fetchCloudVault,
   pushCloudVault,
@@ -214,7 +215,15 @@ export const ArchiveProvider: React.FC<{ children: React.ReactNode }> = ({ child
     }
   });
 
-  const [activeTab, setActiveTab] = useState<NavigationTab>(settings.defaultArchiveView || 'overview');
+  const [activeTab, setActiveTabState] = useState<NavigationTab>(() => {
+    if (typeof window !== 'undefined') {
+      const routedTab = tabFromPath(window.location.pathname);
+      if (routedTab) return routedTab;
+    }
+    const fallback = settings.defaultArchiveView;
+    // Settings has no URL of its own, so a launch page can never be Settings.
+    return fallback && fallback !== 'settings' ? fallback : 'overview';
+  });
   const [searchModalOpen, setSearchModalOpen] = useState(false);
   const [quickAddModalOpen, setQuickAddModalOpen] = useState(false);
   const [quickAddInitialType, setQuickAddInitialType] = useState<ArchiveCategory | null>(null);
@@ -225,6 +234,51 @@ export const ArchiveProvider: React.FC<{ children: React.ReactNode }> = ({ child
   const [isCloudSyncActive, setIsCloudSyncActive] = useState<boolean>(true);
   const [cloudSyncStatus, setCloudSyncStatus] = useState<'synced' | 'syncing' | 'local' | 'error'>('synced');
   const [mongoStatus, setMongoStatus] = useState<MongoStatus | null>(null);
+
+  /**
+   * Switch sections and mirror them into the address bar, so every routed tab
+   * (`/tools`, `/notes`, `/watchlist`, `/images`, `/favorites`) is bookmarkable.
+   */
+  const setActiveTab = useCallback((tab: NavigationTab) => {
+    setActiveTabState(tab);
+    if (typeof window === 'undefined') return;
+    const path = pathForTab(tab);
+    if (normalizePath(window.location.pathname) !== path) {
+      window.history.pushState({ tab }, '', path);
+    }
+  }, []);
+
+  // Canonicalize the first paint: deep links stay, unknown paths go home.
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const path = pathForTab(activeTab);
+    if (normalizePath(window.location.pathname) !== path) {
+      window.history.replaceState({ tab: activeTab }, '', path);
+    }
+    // Only the landing URL needs normalizing.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Browser back/forward navigation follows the URL.
+  useEffect(() => {
+    const handlePopState = () => {
+      const routedTab = tabFromPath(window.location.pathname);
+      if (routedTab) {
+        setActiveTabState(routedTab);
+      } else {
+        window.history.replaceState({ tab: 'overview' }, '', '/');
+        setActiveTabState('overview');
+      }
+    };
+
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, []);
+
+  // Keep the document title in step with the active section.
+  useEffect(() => {
+    document.title = activeTab === 'overview' ? '0arc — Personal Digital Archive' : `${TAB_TITLES[activeTab]} — 0arc`;
+  }, [activeTab]);
 
   // Flags to avoid sync loops
   const isInitialCloudLoadDoneRef = useRef(false);

@@ -225,6 +225,79 @@ export async function getVaultData(): Promise<CloudVaultData & { isMongoConnecte
   };
 }
 
+/** Storage included with the MongoDB Atlas free tier (M0). */
+export const MONGO_FREE_PLAN_LIMIT_BYTES = 512 * 1024 * 1024;
+
+export interface StorageUsageEntry {
+  label: string;
+  bytes: number;
+  count: number;
+}
+
+export interface StorageUsage {
+  usedBytes: number;
+  limitBytes: number;
+  remainingBytes: number;
+  percentUsed: number;
+  planName: string;
+  source: 'mongodb' | 'local';
+  measuredBy: 'atlas-dbstats' | 'vault-document';
+  isMongoConnected: boolean;
+  breakdown: StorageUsageEntry[];
+  updatedAt: string;
+}
+
+const jsonBytes = (value: unknown): number =>
+  Buffer.byteLength(JSON.stringify(value ?? null) ?? '', 'utf8');
+
+/**
+ * Calculate how much of the MongoDB Atlas free plan this vault is using.
+ *
+ * Atlas reports the cluster's physical data size through `dbStats`; shared M0
+ * clusters may block that command, so the stored vault document is measured in
+ * UTF-8 bytes as a fallback.
+ */
+export async function getStorageUsage(): Promise<StorageUsage> {
+  const data = await getVaultData();
+
+  const breakdown: StorageUsageEntry[] = [
+    { label: 'Tools', bytes: jsonBytes(data.tools), count: data.tools.length },
+    { label: 'Notes', bytes: jsonBytes(data.notes), count: data.notes.length },
+    { label: 'Watchlist', bytes: jsonBytes(data.media), count: data.media.length },
+    { label: 'Settings', bytes: jsonBytes(data.settings), count: 1 },
+  ];
+
+  let usedBytes = breakdown.reduce((sum, entry) => sum + entry.bytes, 0);
+  let measuredBy: StorageUsage['measuredBy'] = 'vault-document';
+  let source: StorageUsage['source'] = 'local';
+
+  if (mongoDb) {
+    source = 'mongodb';
+    try {
+      const stats = await mongoDb.command({ dbStats: 1, scale: 1 });
+      if (typeof stats?.dataSize === 'number' && stats.dataSize > 0) {
+        usedBytes = Math.max(usedBytes, Math.round(stats.dataSize));
+        measuredBy = 'atlas-dbstats';
+      }
+    } catch {
+      // Free/shared tiers can reject dbStats; the document estimate still holds.
+    }
+  }
+
+  return {
+    usedBytes,
+    limitBytes: MONGO_FREE_PLAN_LIMIT_BYTES,
+    remainingBytes: Math.max(0, MONGO_FREE_PLAN_LIMIT_BYTES - usedBytes),
+    percentUsed: Math.min(100, (usedBytes / MONGO_FREE_PLAN_LIMIT_BYTES) * 100),
+    planName: 'MongoDB Atlas M0 (Free)',
+    source,
+    measuredBy,
+    isMongoConnected: Boolean(mongoDb),
+    breakdown,
+    updatedAt: data.updatedAt,
+  };
+}
+
 /**
  * Save new vault data, persist to cloud disk + MongoDB, and broadcast to all connected devices.
  */

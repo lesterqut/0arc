@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect, useMemo } from 'react';
 import { useArchive } from '../../context/ArchiveContext';
 import {
   Shield,
@@ -13,8 +13,24 @@ import {
   FileText,
   Film,
   Cloud,
+  HardDrive,
 } from 'lucide-react';
 import { NavigationTab } from '../../types';
+import { fetchStorageUsage, type StorageUsage } from '../../utils/cloudSync';
+
+const FREE_PLAN_LIMIT_BYTES = 512 * 1024 * 1024;
+
+/** 1.4 MB / 512 MB — short, readable sizes. */
+const formatBytes = (bytes: number): string => {
+  if (!Number.isFinite(bytes) || bytes <= 0) return '0 B';
+  const units = ['B', 'KB', 'MB', 'GB'];
+  const exponent = Math.min(units.length - 1, Math.floor(Math.log(bytes) / Math.log(1024)));
+  const value = bytes / 1024 ** exponent;
+  return `${value.toFixed(exponent === 0 ? 0 : value >= 100 ? 0 : 1)} ${units[exponent]}`;
+};
+
+const utf8Bytes = (value: unknown): number =>
+  new TextEncoder().encode(JSON.stringify(value ?? null)).length;
 
 export const SettingsView: React.FC = () => {
   const {
@@ -42,6 +58,55 @@ export const SettingsView: React.FC = () => {
   // Clear modal state
   const [showClearModal, setShowClearModal] = useState(false);
   const [confirmInput, setConfirmInput] = useState('');
+
+  // Storage allowance against the MongoDB Atlas free plan
+  const [storageUsage, setStorageUsage] = useState<StorageUsage | null>(null);
+
+  useEffect(() => {
+    let mounted = true;
+    fetchStorageUsage().then((usage) => {
+      if (mounted) setStorageUsage(usage);
+    });
+    return () => {
+      mounted = false;
+    };
+  }, []);
+
+  const storage = useMemo(() => {
+    if (storageUsage) {
+      return {
+        usedBytes: storageUsage.usedBytes,
+        limitBytes: storageUsage.limitBytes,
+        remainingBytes: storageUsage.remainingBytes,
+        percentUsed: storageUsage.percentUsed,
+        breakdown: storageUsage.breakdown,
+        measuredLive: storageUsage.measuredBy === 'atlas-dbstats',
+      };
+    }
+
+    // Fallback when the API is unreachable: measure the vault saved in this browser.
+    const breakdown = [
+      { label: 'Tools', bytes: utf8Bytes(tools), count: tools.length },
+      { label: 'Notes', bytes: utf8Bytes(notes), count: notes.length },
+      { label: 'Watchlist', bytes: utf8Bytes(media), count: media.length },
+      { label: 'Settings', bytes: utf8Bytes(settings), count: 1 },
+    ];
+    const usedBytes = breakdown.reduce((sum, entry) => sum + entry.bytes, 0);
+
+    return {
+      usedBytes,
+      limitBytes: FREE_PLAN_LIMIT_BYTES,
+      remainingBytes: Math.max(0, FREE_PLAN_LIMIT_BYTES - usedBytes),
+      percentUsed: (usedBytes / FREE_PLAN_LIMIT_BYTES) * 100,
+      breakdown,
+      measuredLive: false,
+    };
+  }, [storageUsage, tools, notes, media, settings]);
+
+  const storageBarWidth = Math.min(
+    100,
+    Math.max(storage.usedBytes > 0 ? 1 : 0, storage.percentUsed)
+  );
 
   const totalItems = tools.length + notes.length + media.length;
 
@@ -119,7 +184,7 @@ export const SettingsView: React.FC = () => {
             <div className="flex items-center gap-2.5">
               <span
                 className={`w-2 h-2 rounded-full shrink-0 ${
-                  isCloudSyncActive ? 'bg-emerald-400 animate-pulse' : 'bg-zinc-600'
+                  isCloudSyncActive ? 'bg-white animate-pulse' : 'bg-zinc-600'
                 }`}
               />
               <span className="text-xs font-mono font-medium text-white">
@@ -135,9 +200,73 @@ export const SettingsView: React.FC = () => {
           </div>
 
           <div className="shrink-0 text-right">
-            <p className="text-[11px] font-mono text-emerald-400">Automatic background saving</p>
+            <p className="text-[11px] font-mono text-zinc-300">Automatic background saving</p>
             <p className="text-[10px] text-zinc-500 mt-0.5">MongoDB Atlas</p>
           </div>
+        </div>
+      </div>
+
+      {/* Storage Usage vs MongoDB free plan */}
+      <div className="space-y-3">
+        <div className="flex items-center gap-2 text-xs font-semibold text-white">
+          <HardDrive className="w-3.5 h-3.5 text-zinc-400" />
+          <span>Storage</span>
+        </div>
+
+        <div className="surface-card rounded-xl p-4 space-y-4">
+          <div className="flex items-start justify-between gap-3">
+            <div>
+              <p className="text-[11px] font-mono text-zinc-500">MongoDB Atlas · M0 free plan</p>
+              <div className="flex items-baseline gap-2 mt-1">
+                <span className="text-2xl font-semibold font-mono tabular-nums text-white">
+                  {formatBytes(storage.usedBytes)}
+                </span>
+                <span className="text-[11px] font-mono text-zinc-500">
+                  of {formatBytes(storage.limitBytes)} used
+                </span>
+              </div>
+            </div>
+
+            <span className="shrink-0 px-2 py-0.5 rounded border border-white/[0.08] bg-white/[0.04] text-[10px] font-mono text-zinc-300 tabular-nums">
+              {storage.percentUsed > 0 && storage.percentUsed < 1
+                ? '<1%'
+                : `${storage.percentUsed.toFixed(1)}%`}
+            </span>
+          </div>
+
+          <div className="w-full h-1.5 bg-white/[0.05] rounded-full overflow-hidden">
+            <div
+              className="h-full rounded-full bg-white/80"
+              style={{ width: `${storageBarWidth}%` }}
+            />
+          </div>
+
+          <div className="flex flex-wrap items-center justify-between gap-1 text-[11px] font-mono">
+            <span className="text-zinc-200">
+              {formatBytes(storage.remainingBytes)} still available
+            </span>
+            <span className="text-zinc-500">
+              {storage.measuredLive ? 'Live from Atlas' : 'Estimated from saved data'}
+            </span>
+          </div>
+
+          <div className="pt-3 border-t border-white/[0.06] grid grid-cols-2 sm:grid-cols-4 gap-3">
+            {storage.breakdown.map((entry) => (
+              <div key={entry.label}>
+                <p className="text-[10px] font-mono text-zinc-500">
+                  {entry.label} <span className="text-zinc-600">({entry.count})</span>
+                </p>
+                <p className="text-[11px] font-mono text-zinc-200 tabular-nums mt-0.5">
+                  {formatBytes(entry.bytes)}
+                </p>
+              </div>
+            ))}
+          </div>
+
+          <p className="text-[10px] text-zinc-500 leading-relaxed">
+            Atlas M0 clusters include 512 MB of free storage. This covers everything saved in your vault;
+            Atlas also counts indexes and cluster overhead.
+          </p>
         </div>
       </div>
 
@@ -287,7 +416,7 @@ export const SettingsView: React.FC = () => {
                   onChange={() => setImportMode('replace')}
                   className="accent-white"
                 />
-                <span className="text-xs text-amber-400">Replace All</span>
+                <span className="text-xs text-zinc-300">Replace All</span>
               </label>
             </div>
           </div>
@@ -312,7 +441,7 @@ export const SettingsView: React.FC = () => {
           </div>
 
           {importSuccess && (
-            <div className="p-3 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-xs text-emerald-400 flex items-center gap-2 font-mono">
+            <div className="p-3 rounded-lg bg-white/[0.05] border border-white/[0.12] text-xs text-zinc-100 flex items-center gap-2 font-mono">
               <Check className="w-4 h-4 shrink-0" />
               <span>{importSuccess}</span>
             </div>

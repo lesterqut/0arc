@@ -21,6 +21,41 @@ export interface MongoStatus {
   storageType: string;
 }
 
+export interface StorageUsageEntry {
+  label: string;
+  bytes: number;
+  count: number;
+}
+
+export interface StorageUsage {
+  ok: boolean;
+  usedBytes: number;
+  limitBytes: number;
+  remainingBytes: number;
+  percentUsed: number;
+  planName: string;
+  source: 'mongodb' | 'local';
+  measuredBy: 'atlas-dbstats' | 'vault-document';
+  isMongoConnected: boolean;
+  breakdown: StorageUsageEntry[];
+  updatedAt?: string;
+}
+
+/**
+ * Measure the vault against the MongoDB Atlas free plan allowance.
+ */
+export async function fetchStorageUsage(): Promise<StorageUsage | null> {
+  try {
+    const res = await fetch('/api/cloud/storage-usage');
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const json = (await res.json()) as StorageUsage;
+    if (json.ok === false) return null;
+    return json;
+  } catch {
+    return null;
+  }
+}
+
 /**
  * Fetch the latest vault snapshot from the cloud server.
  */
